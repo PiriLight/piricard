@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { BusinessDirectory } from "@/components/BusinessDirectory";
 import { PiriCardBrandMark } from "@/components/PiriCardBrandMark";
+import { PlatformFooter } from "@/components/PlatformFooter";
 import { getPublishedDirectoryBusinesses } from "@/lib/businesses";
 import { getPiriCardShowcaseCards } from "@/lib/piricard-cards";
 
@@ -35,12 +36,7 @@ export default function HomePage() {
         </div>
         <Link href="/piricard">Ver PiriCard e preços</Link>
       </aside>
-      <footer className="platform-footer">
-        <a href="https://pirilight.pt" target="_blank" rel="noopener noreferrer">
-          <PiriCardBrandMark wordmark={<span>Piri<span>Light</span> Studio</span>} />
-        </a>
-        <p>© 2026 PiriLight Studio. Todos os direitos reservados.</p>
-      </footer>
+      <PlatformFooter />
     </main>
   );
 }

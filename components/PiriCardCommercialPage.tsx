@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { InteractivePiriCard } from "@/components/InteractivePiriCard";
 import { PiriCardBrandMark } from "@/components/PiriCardBrandMark";
+import { PlatformFooter } from "@/components/PlatformFooter";
 
 // Single external contact channel already used for every "quero um PiriCard"
 // entry point on the directory (app/page.tsx) — reused here rather than
@@ -207,12 +208,7 @@ export function PiriCardCommercialPage() {
         </section>
       </div>
 
-      <footer className="platform-footer">
-        <a href={CONTACT_HREF} target="_blank" rel="noopener noreferrer">
-          <PiriCardBrandMark wordmark={<span>Piri<span>Light</span> Studio</span>} />
-        </a>
-        <p>© 2026 PiriLight Studio. Todos os direitos reservados.</p>
-      </footer>
+      <PlatformFooter />
     </main>
   );
 }

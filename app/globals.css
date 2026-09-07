@@ -139,6 +139,17 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .platform-footer { min-height: 11rem; border-top: 1px solid var(--platform-border); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .45rem; color: var(--platform-muted); font-size: .82rem; text-align: center; }
 .platform-footer a { display: flex; align-items: center; color: var(--platform-text); font-size: .76rem; font-weight: 680; letter-spacing: .15em; text-transform: uppercase; --brand-mark-color: var(--platform-accent); }
 .platform-footer p { margin: 0; }
+/* Discreet internal admin-login link — deliberately understated: no icon,
+   no button chrome, no border. Extra margin-top (on top of the footer's own
+   flex `gap`) sets it apart from the branding/copyright above so it reads
+   as intentional, not accidental. */
+/* `.platform-footer a` (below) is more specific than a single class would be
+   (class+element beats class alone), so this is qualified the same way to
+   reliably win: without it, the branding link's uppercase/bold/flex styling
+   would leak onto this link and undo the discreetness entirely. */
+.platform-footer a.platform-footer-admin-link { display: block; margin-top: 1.25rem; color: var(--platform-muted); opacity: .55; font-size: .68rem; font-weight: 400; letter-spacing: .02em; text-transform: none; text-decoration: none; transition: opacity var(--platform-speed), color var(--platform-speed); }
+.platform-footer a.platform-footer-admin-link:hover, .platform-footer a.platform-footer-admin-link:focus-visible { color: var(--platform-text); opacity: .85; }
+.platform-footer a.platform-footer-admin-link:focus-visible { outline: 1px solid var(--platform-border); outline-offset: 3px; }
 
 @keyframes platform-reveal { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 @keyframes piricard-idle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }

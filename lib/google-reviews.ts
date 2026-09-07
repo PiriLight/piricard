@@ -1,4 +1,4 @@
-import { getPublishedBusinessBySlug, type Business } from "@/lib/businesses";
+import type { Business } from "@/lib/businesses";
 
 /**
  * Live Google rating + review count, via the official Google Places API
@@ -73,18 +73,23 @@ async function fetchGoogleReviewSnapshot(placeId: string): Promise<GoogleReviewS
 }
 
 /**
- * Returns the business for `slug` with its `reviewSnapshot` replaced by a
- * live Google value when possible. Falls back, in order:
+ * Returns `business` with its `reviewSnapshot` replaced by a live Google
+ * value when possible. Falls back, in order:
  *   1. live Google Places data (if googlePlaceId is configured and the fetch succeeds)
- *   2. the business's existing static reviewSnapshot, if any
- *   3. undefined (profile components already render a graceful
- *      "no verified rating yet" state for this case)
- * Never fabricates a value for step 2/3 — only ever passes through data
- * that's already in lib/businesses.ts or came back from Google itself.
+ *   2. the business's existing reviewSnapshot, if any
+ * Never fabricates a value for step 2 — only ever passes through data the
+ * caller already has (from Supabase — see lib/public/business.ts — or came
+ * back from Google itself).
+ *
+ * Phase 4E: takes the already-fetched `Business` directly rather than a
+ * slug it looked up itself — the public route now owns fetching the
+ * business (from the canonical Supabase public data layer, request-deduped
+ * against generateMetadata's own lookup) and the missing/unpublished/
+ * archived case (`notFound()`), so this stays a pure enrichment step over an
+ * already-confirmed business, with no data-source opinion of its own.
  */
-export async function getBusinessWithLiveReviews(slug: string): Promise<Business | undefined> {
-  const business = getPublishedBusinessBySlug(slug);
-  if (!business?.googlePlaceId) return business;
+export async function getBusinessWithLiveReviews(business: Business): Promise<Business> {
+  if (!business.googlePlaceId) return business;
 
   const live = await fetchGoogleReviewSnapshot(business.googlePlaceId);
   if (!live) return business;

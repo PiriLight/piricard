@@ -285,7 +285,7 @@ export default function BusinessEditor({
             />
           ) : null}
           {activeSection === "gallery" ? (
-            <GallerySection draft={draft} dispatch={dispatch} disabled={!moduleActivation.gallery} />
+            <GallerySection businessId={businessId} draft={draft} dispatch={dispatch} disabled={!moduleActivation.gallery} />
           ) : null}
           {activeSection === "restaurantInfo" ? (
             <RestaurantInfoSection draft={draft} dispatch={dispatch} disabled={!moduleActivation.restaurant_info} />
@@ -322,7 +322,7 @@ export default function BusinessEditor({
 
           {activeSection === "layout" ? <LayoutSection draft={draft} dispatch={dispatch} errors={configFieldErrors} /> : null}
           {activeSection === "theme" ? <ThemeSection draft={draft} dispatch={dispatch} errors={configFieldErrors.theme} /> : null}
-          {activeSection === "assets" ? <AssetsSection draft={draft} dispatch={dispatch} /> : null}
+          {activeSection === "assets" ? <AssetsSection businessId={businessId} draft={draft} dispatch={dispatch} /> : null}
           {activeSection === "technical" ? (
             <TechnicalConfigSection draft={draft} dispatch={dispatch} published={published} errors={configFieldErrors} />
           ) : null}

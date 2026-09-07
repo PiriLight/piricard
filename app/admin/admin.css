@@ -492,6 +492,28 @@
 .admin-icon-button:disabled { opacity: .4; cursor: not-allowed; }
 
 .admin-add-button { align-self: flex-start; }
+.admin-add-button:disabled { opacity: .6; cursor: not-allowed; }
+
+/* --- Phase 4H: image upload --- */
+
+.admin-image-upload {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.admin-image-upload-preview {
+  width: 64px;
+  height: 40px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--platform-border);
+  flex-shrink: 0;
+  background: var(--platform-surface-muted, #f2f2f2);
+}
+
+.admin-image-upload-input { display: none; }
 
 /* --- Hours --- */
 
@@ -607,6 +629,15 @@
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 8px 24px rgba(20, 30, 60, .18);
+  /* Public profile layouts use `position: fixed` sticky action bars/buttons
+     (StickyProfileActions and every bespoke layout's own stickyBar/
+     stickyWhatsapp). `overflow: hidden` alone does NOT stop a `position:
+     fixed` descendant from escaping to the real browser viewport — only an
+     ancestor with `contain`/`transform`/`filter`/`perspective` establishes a
+     new containing block for it. Without this, those bars render pinned to
+     the actual admin page window instead of this preview frame. `contain:
+     layout` is a no-visual-effect way to get that containment. */
+  contain: layout;
 }
 
 .admin-preview-frame-mobile {

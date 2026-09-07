@@ -1,22 +1,27 @@
 "use client";
 
 import type { Business, BusinessGalleryImage } from "@/lib/businesses";
+import ImageUploadField from "./ImageUploadField";
 import type { DraftAction } from "./reducer";
 import { GALLERY_MAX_ITEMS } from "./reducer";
 
 const ASPECT_OPTIONS = ["wide", "landscape", "square"] as const;
 
 /**
- * Metadata/content editing only (Phase 4B.4 scope) — `src` is a plain text
- * field (a path/URL), not an uploader; no compression/Storage pipeline yet.
- * Max 5 items is enforced here for immediate feedback and again, as the real
- * boundary, server-side in admin_replace_gallery.
+ * Phase 4H: each item's `src` can now be filled either by uploading a real
+ * image (Supabase Storage, via ImageUploadField) or by typing a path/URL —
+ * the text field is kept for legacy paths and external URLs. Max 5 items is
+ * enforced here for immediate feedback and again, as the real boundary,
+ * server-side in admin_replace_gallery. Ordering/remove/move are unchanged
+ * from the pre-4H metadata-only version.
  */
 export default function GallerySection({
+  businessId,
   draft,
   dispatch,
   disabled,
 }: {
+  businessId: string;
   draft: Business;
   dispatch: React.Dispatch<DraftAction>;
   disabled?: boolean;
@@ -35,6 +40,15 @@ export default function GallerySection({
         <div className="admin-gallery-card" key={index}>
           <div className="admin-field">
             <label htmlFor={`gallery-src-${index}`}>Caminho/URL da imagem</label>
+            {!disabled ? (
+              <ImageUploadField
+                businessKey={businessId}
+                kind="gallery"
+                label="imagem"
+                currentValue={item.src}
+                onUploaded={(publicUrl) => dispatch({ type: "UPDATE_GALLERY_ITEM", index, patch: { src: publicUrl } })}
+              />
+            ) : null}
             <input
               id={`gallery-src-${index}`}
               type="text"

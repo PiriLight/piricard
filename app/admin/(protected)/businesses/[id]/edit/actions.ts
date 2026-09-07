@@ -12,6 +12,23 @@ import {
 } from "@/lib/admin/validation";
 import type { BusinessConfigPayload, BusinessCoreSavePayload, ModuleActivation, ModuleContentSavePayload } from "@/lib/admin/business-mapping";
 import type { ModuleKey } from "@/lib/supabase/types";
+import { deleteBusinessImageAction } from "@/app/admin/(protected)/businesses/storage-actions";
+import { isPiricardAssetPath } from "@/lib/admin/storage";
+
+/**
+ * Storage-object cleanup helper (Phase 4H, Step 8): only deletes a
+ * previously-referenced Storage object AFTER its replacement value has
+ * already been successfully persisted, and only when it (a) was actually
+ * our own Storage path (never a legacy static path or external URL) and
+ * (b) actually changed. Never called speculatively — a save that fails
+ * never reaches this, so a currently-live production image is never
+ * removed while still referenced.
+ */
+async function cleanupReplacedAsset(oldValue: string | undefined | null, newValue: string | undefined | null) {
+  if (!isPiricardAssetPath(oldValue ?? undefined)) return;
+  if (oldValue === newValue) return;
+  await deleteBusinessImageAction(oldValue);
+}
 
 export type SaveBusinessConfigState =
   | { status: "idle" }
@@ -170,11 +187,23 @@ export async function saveModuleContentAction(
   }
 
   if (activation.gallery) {
+    // Phase 4H, Step 7/8: admin_replace_gallery fully replaces the DB rows
+    // atomically (no duplication across repeated saves — unchanged from
+    // Phase 4B.4). Read the currently-persisted src set BEFORE replacing so
+    // any Storage object that's truly being REMOVED (not just reordered or
+    // kept) can be cleaned up once the new state is confirmed saved.
+    const { data: previousGallery } = await supabase.from("gallery").select("src").eq("business_id", businessId);
+    const previousSrcs = (previousGallery ?? []).map((row) => row.src).filter((src): src is string => Boolean(src));
+
     const { error } = await supabase.rpc("admin_replace_gallery", {
       p_business_id: businessId,
       p_items: payload.gallery,
     });
     if (error) return { status: "error", message: GENERIC_ERROR };
+
+    const nextSrcs = new Set(payload.gallery.map((item) => item.src).filter(Boolean));
+    const removedSrcs = previousSrcs.filter((src) => !nextSrcs.has(src));
+    await Promise.all(removedSrcs.map((src) => deleteBusinessImageAction(src)));
   }
 
   if (activation.restaurant_info) {
@@ -262,6 +291,13 @@ export async function saveBusinessConfigAction(
 
   const supabase = await createClient();
 
+  // Phase 4H, Step 8: read the CURRENTLY-PERSISTED logo/cover BEFORE
+  // updating, so a replaced Storage object can be cleaned up only after the
+  // new value is confirmed saved — never speculatively, and never trusting
+  // a client-supplied "previous value" that could be stale.
+  const { data: currentBusiness } = await supabase.from("businesses").select("assets").eq("id", businessId).maybeSingle();
+  const previousAssets = (currentBusiness?.assets ?? {}) as { logo?: string; cover?: string };
+
   const { error } = await supabase.rpc("admin_update_business_config", {
     p_business_id: businessId,
     p_slug: payload.slug,
@@ -283,6 +319,11 @@ export async function saveBusinessConfigAction(
   if (error) {
     return { status: "error", message: CONFIG_GENERIC_ERROR };
   }
+
+  await Promise.all([
+    cleanupReplacedAsset(previousAssets.logo, payload.assets.logo),
+    cleanupReplacedAsset(previousAssets.cover, payload.assets.cover),
+  ]);
 
   revalidatePath(`/admin/businesses/${businessId}/edit`);
   revalidatePath("/admin");

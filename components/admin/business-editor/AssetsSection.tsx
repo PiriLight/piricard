@@ -1,27 +1,40 @@
 "use client";
 
 import type { Business } from "@/lib/businesses";
+import ImageUploadField from "./ImageUploadField";
 import type { DraftAction } from "./reducer";
 
 /**
- * Metadata/path editing only — no uploader, no Storage, no image processing
- * (Phase 4B.5/4B.6 explicit non-goals). Logo/cover stay PiriLight-controlled:
- * staff type the path/URL of an already-published asset. `qrCode` is
+ * Phase 4H: logo/cover can now be uploaded directly to Supabase Storage
+ * (see ImageUploadField + app/admin/(protected)/businesses/storage-actions.ts)
+ * as well as typed/pasted as a plain path or URL — the text field is kept
+ * for backward compatibility with the 4 real businesses' existing legacy
+ * `/clients/...` paths and for anyone who wants to reference an
+ * already-published external asset directly, matching the pre-4H contract.
+ * A successful upload just dispatches the SAME SET_ASSET_FIELD action the
+ * text field already used — no new draft/state shape. `qrCode` is
  * deliberately NOT editable here — it's tied to a business's real, already
  * generated/printed QR asset (scripts/generate-piricard-qrs.ts) and editing
  * it here would risk desyncing it from the physical product.
  */
-export default function AssetsSection({ draft, dispatch }: { draft: Business; dispatch: React.Dispatch<DraftAction> }) {
+export default function AssetsSection({ businessId, draft, dispatch }: { businessId: string; draft: Business; dispatch: React.Dispatch<DraftAction> }) {
   const assets = draft.assets;
 
   return (
     <div className="admin-form-section">
       <p className="admin-field-hint">
-        Caminho ou URL de imagens já publicadas — sem upload nesta fase. O QR Code não é editável aqui.
+        Carrega uma imagem ou indica o caminho/URL de uma imagem já publicada. O QR Code não é editável aqui.
       </p>
 
       <div className="admin-field">
         <label htmlFor="asset-logo">Logótipo</label>
+        <ImageUploadField
+          businessKey={businessId}
+          kind="logo"
+          label="logótipo"
+          currentValue={assets.logo}
+          onUploaded={(publicUrl) => dispatch({ type: "SET_ASSET_FIELD", field: "logo", value: publicUrl })}
+        />
         <input
           id="asset-logo"
           type="text"
@@ -42,6 +55,13 @@ export default function AssetsSection({ draft, dispatch }: { draft: Business; di
 
       <div className="admin-field">
         <label htmlFor="asset-cover">Imagem de capa</label>
+        <ImageUploadField
+          businessKey={businessId}
+          kind="cover"
+          label="capa"
+          currentValue={assets.cover}
+          onUploaded={(publicUrl) => dispatch({ type: "SET_ASSET_FIELD", field: "cover", value: publicUrl })}
+        />
         <input
           id="asset-cover"
           type="text"

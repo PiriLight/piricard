@@ -263,6 +263,106 @@ export function buildPreviewBusiness(business: Business, activation: ModuleActiv
 }
 
 // ---------------------------------------------------------------------------
+// Phase 4G — Create-flow preview. The "Criar PiriCard" wizard (Passo 1-4)
+// collects a handful of plain fields BEFORE any `businesses` row exists —
+// there is no id, no BusinessRow/BusinessProfileContentRow from Supabase to
+// map. Rather than inventing a second, parallel mapper for this one screen,
+// this wraps the wizard's plain values into the SAME synthetic row shapes
+// `mapBusinessFromDatabase`/`mapModuleActivation` already accept, so the
+// create-mode preview and the edit-mode preview are produced by the exact
+// same code. `directory_description` mirrors the server action's own
+// default (see createBusinessAction) via the shared helper below, so the
+// preview never shows a value the save wouldn't actually produce.
+// ---------------------------------------------------------------------------
+
+export function defaultDirectoryDescription(name: string, category: string): string {
+  return `${name.trim()} — ${category.trim()}.`;
+}
+
+export interface CreatePreviewFormValues {
+  name: string;
+  category: string;
+  slug: string;
+  layoutVariant: Business["layoutVariant"];
+  primaryColor?: string;
+  accentColor?: string;
+  logo?: string;
+  cover?: string;
+  enabledModules: readonly ModuleKey[];
+}
+
+/**
+ * Builds the preview `Business` for a not-yet-created business, straight
+ * from the create wizard's current form state — no database id, no
+ * Supabase read. Never call this to persist anything; it only ever feeds
+ * `PreviewPane`.
+ */
+export function buildCreatePreviewBusiness(values: CreatePreviewFormValues): Business {
+  const name = values.name.trim() || "Novo negócio";
+  const category = values.category.trim();
+
+  const business: BusinessRow = {
+    id: "",
+    slug: values.slug.trim() || "novo-negocio",
+    organization: name,
+    layout_variant: values.layoutVariant,
+    theme: {
+      ...(values.primaryColor ? { primary: values.primaryColor } : {}),
+      ...(values.accentColor ? { accent: values.accentColor } : {}),
+    },
+    assets: {
+      ...(values.logo ? { logo: values.logo } : {}),
+      ...(values.cover ? { cover: values.cover } : {}),
+    },
+    maps_url: null,
+    google_place_id: null,
+    review_url: null,
+    review_write_url: null,
+    review_fallback: null,
+    external_links: {},
+    digital_card: null,
+    published: false,
+    featured: false,
+    indexable: true,
+    archived_at: null,
+    created_at: "",
+    updated_at: "",
+  };
+
+  const content: BusinessProfileContentRow = {
+    business_id: "",
+    name,
+    category,
+    directory_description: defaultDirectoryDescription(name, category),
+    profile_description: null,
+    positioning: null,
+    about: null,
+    phone: null,
+    whatsapp: null,
+    email: null,
+    website: null,
+    address: null,
+    street_address: null,
+    city: null,
+    country: null,
+    updated_at: "",
+    updated_by: null,
+  };
+
+  const draft = mapBusinessFromDatabase({ business, content, hours: [], socialLinks: [] });
+
+  const moduleRows: BusinessModuleRow[] = values.enabledModules.map((key) => ({
+    business_id: "",
+    module_key: key,
+    enabled: true,
+    updated_at: "",
+  }));
+  const activation = mapModuleActivation(moduleRows);
+
+  return buildPreviewBusiness(draft, activation);
+}
+
+// ---------------------------------------------------------------------------
 // Draft (Business) -> save payload. Extracts only the fields this phase's
 // editor is allowed to write (see AGENTS/phase spec: business_profile_content
 // + business_hours + social_links only — never businesses' protected config).

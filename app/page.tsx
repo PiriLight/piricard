@@ -3,15 +3,22 @@ import Link from "next/link";
 import { BusinessDirectory } from "@/components/BusinessDirectory";
 import { PiriCardBrandMark } from "@/components/PiriCardBrandMark";
 import { PlatformFooter } from "@/components/PlatformFooter";
-import { getPublishedDirectoryBusinesses } from "@/lib/businesses";
 import { getPiriCardShowcaseCards } from "@/lib/piricard-cards";
+import { getPublicDirectoryBusinesses } from "@/lib/public/business";
 
 export const metadata: Metadata = {
   title: { absolute: "PiriCard — Negócios a um toque" },
 };
 
-export default function HomePage() {
-  const businesses = getPublishedDirectoryBusinesses();
+// Phase 4E — public route cutover: same canonical Supabase public data
+// layer and the same revalidation window as app/[slug]/page.tsx (see that
+// file's comment for the full rationale). Kept as a literal here too — the
+// route segment `revalidate` value must be statically analyzable, so it
+// can't be imported from a shared constant.
+export const revalidate = 300; // 5 minutes
+
+export default async function HomePage() {
+  const businesses = await getPublicDirectoryBusinesses();
   const showcaseCards = getPiriCardShowcaseCards();
   return (
     <main className="directory-page">

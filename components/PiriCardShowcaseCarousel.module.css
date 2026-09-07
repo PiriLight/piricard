@@ -29,7 +29,7 @@
      instead of flashing at the stage's top-left corner; renderFrame()
      immediately replaces this with the real arc transform. */
   transform: translate(-50%, -50%);
-  width: min(75%, 19.5rem);
+  width: min(67%, 17rem);
   aspect-ratio: 53.98 / 85.6;
   padding: 0;
   border: 1px solid rgba(207, 231, 255, .16);

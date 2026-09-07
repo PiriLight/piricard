@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Fragment } from "react";
 import { ArrowUpRight, Bike, ChevronRight, Facebook, Instagram, Leaf, MapPin, Navigation, Phone, Star } from "lucide-react";
 import { ContactDownloadButton } from "@/components/ContactDownloadButton";
 import { PiriCardBrandMark } from "@/components/PiriCardBrandMark";
@@ -12,20 +13,6 @@ import { getPiriCardPdfFilename, getPiriCardPdfPath } from "@/lib/site";
 import styles from "./BoiNaBrasaProfile.module.css";
 
 const directionsUrl = "https://www.google.com/maps/dir/?api=1&destination=39.0916177,-9.2583152&destination_place_id=ChIJ7z4J8GDQ8Q0RzV0PksFzKaI";
-
-const essentialInformation = [
-  { label: "Telefone e reservas", value: "+351 261 063 480", note: "reservas por telefone · grupos bem-vindos", href: "tel:+351261063480" },
-  { label: "Morada", value: "Rua 1.º de Dezembro 5", note: "2560-300 Torres Vedras · centro da cidade" },
-  { label: "Preço médio", value: "10–15 € por pessoa", note: "indicado no Google por 47 pessoas" },
-  { label: "Cozinha", value: "Grelhados luso-brasileiros", note: "petiscos, sandes e salgados" },
-] as const;
-
-const mains = [
-  { name: "Maminha Grelhada", price: "12,90 €" },
-  { name: "Bitoque de Vaca", price: "12,90 €" },
-  { name: "Picanha Grelhada", price: "13,90 €" },
-  { name: "Bife da Vazia", price: "14,90 €" },
-] as const;
 
 const praise = [
   "Carne macia e no ponto",
@@ -48,6 +35,17 @@ function ExternalLink({ href, children, className, ariaLabel }: { href: string; 
   return <a className={className} href={href} target="_blank" rel="noopener noreferrer" aria-label={ariaLabel}>{children}</a>;
 }
 
+// Same helper (and +351-prefixed display format) already used by
+// BusinessProfile/AutoformigalProfile/OFTRacingProfile — kept as a local
+// copy rather than a shared import since each profile owns its own display
+// formatting (see Phase 1 data-hygiene notes; consolidating this is Phase 2).
+function formatPhone(value: string): string {
+  const digits = value.replace(/\D/g, "");
+  const local = digits.startsWith("351") ? digits.slice(3) : digits;
+  const formatted = local.length === 9 ? local.replace(/(\d{3})(\d{3})(\d{3})/, "$1 $2 $3") : value;
+  return digits.startsWith("351") ? `+351 ${formatted}` : formatted;
+}
+
 export function BoiNaBrasaProfile({ business }: { business: Business }) {
   const phoneHref = getPhoneHref(business.contact.phone) ?? "tel:+351261063480";
   const mapsHref = getMapsHref(business.location?.mapsUrl, business.location?.address) ?? directionsUrl;
@@ -60,7 +58,25 @@ export function BoiNaBrasaProfile({ business }: { business: Business }) {
   const tripAdvisorHref = getSafeExternalUrl(business.externalLinks?.tripAdvisor);
   const deliveryUrl = getSafeExternalUrl(business.externalLinks?.delivery);
   const collectionUrl = getSafeExternalUrl(business.externalLinks?.collection);
+  const facebookHref = getSafeExternalUrl(business.socialLinks?.find((link) => link.platform === "facebook")?.url);
+  const instagramHref = getSafeExternalUrl(business.socialLinks?.find((link) => link.platform === "instagram")?.url);
   const contactFilename = getPiriCardPdfFilename(business.slug);
+  const phone = business.contact.phone ? formatPhone(business.contact.phone) : undefined;
+  const localPhone = phone?.replace(/^\+351\s/, "");
+  const city = business.location?.city;
+  const streetAddress = business.location?.streetAddress;
+  const address = business.location?.address;
+  const restaurantInfo = business.restaurantInfo;
+
+  // Same shape as before (label/value/note/href) — phone and street address
+  // derive from business.* (Phase 1); average spend/cuisine now derive from
+  // business.restaurantInfo (Phase 2) instead of being hardcoded here.
+  const essentialInformation: Array<{ label: string; value: string; note?: string; href?: string }> = [
+    { label: "Telefone e reservas", value: phone ?? "+351 261 063 480", note: "reservas por telefone · grupos bem-vindos", href: phoneHref },
+    { label: "Morada", value: streetAddress ?? "Rua 1.º de Dezembro 5", note: "2560-300 Torres Vedras · centro da cidade" },
+    ...(restaurantInfo?.averageSpend ? [{ label: "Preço médio", value: restaurantInfo.averageSpend, note: restaurantInfo.averageSpendNote }] : []),
+    ...(restaurantInfo?.cuisine ? [{ label: "Cozinha", value: restaurantInfo.cuisine, note: restaurantInfo.cuisineNote }] : []),
+  ];
 
   return (
     <main className={`profile-layout ${styles.page}`}>
@@ -93,7 +109,7 @@ export function BoiNaBrasaProfile({ business }: { business: Business }) {
               />
             ) : null}
             <div className={styles.heroFade} aria-hidden="true" />
-            <span className={styles.locationPill}><MapPin aria-hidden="true" size={12} />Torres Vedras · Centro</span>
+            <span className={styles.locationPill}><MapPin aria-hidden="true" size={12} />{city} · Centro</span>
           </div>
 
           <div className={styles.identity}>
@@ -112,8 +128,8 @@ export function BoiNaBrasaProfile({ business }: { business: Business }) {
               ) : null}
             </div>
             <h1>{business.name}</h1>
-            <p className={styles.subtitle}>Restaurante &amp; Café · Grelhados luso-brasileiros</p>
-            <p className={styles.address}>Rua 1.º de Dezembro 5, Torres Vedras</p>
+            <p className={styles.subtitle}>{business.category} · Grelhados luso-brasileiros</p>
+            <p className={styles.address}>{streetAddress}{city ? `, ${city}` : ""}</p>
             {business.hours?.length ? (
               <div className={styles.liveStatus}>
                 <OpeningStatus hours={business.hours} />
@@ -124,7 +140,7 @@ export function BoiNaBrasaProfile({ business }: { business: Business }) {
         </header>
 
         <nav className={styles.quickActions} aria-label="Ações rápidas">
-          <a className={styles.actionDark} href={phoneHref}><strong>Ligar</strong><small>261 063 480</small><Phone aria-hidden="true" /></a>
+          <a className={styles.actionDark} href={phoneHref}><strong>Ligar</strong><small>{localPhone}</small><Phone aria-hidden="true" /></a>
           <ExternalLink className={styles.actionDirections} href={directionsUrl}><strong>Como chegar</strong><small>Google Maps</small><Navigation aria-hidden="true" /></ExternalLink>
           <ExternalLink className={styles.actionReview} href={reviewWriteHref} ariaLabel={`Deixar uma avaliação da ${business.name} no Google`}>
             <strong>Deixar avaliação</strong><small>Google</small><Star aria-hidden="true" />
@@ -152,21 +168,24 @@ export function BoiNaBrasaProfile({ business }: { business: Business }) {
         <section className={styles.social} aria-labelledby="social-heading">
           <h2 id="social-heading">Segue-nos nas redes sociais</h2>
           <div className={styles.socialLinks}>
-            <ExternalLink className={styles.facebookButton} href="https://facebook.com/p/Restaurante-Boi-na-Brasa-61590189674905/">
-              <Facebook aria-hidden="true" />
-              <span>Seguir no Facebook</span>
-            </ExternalLink>
-            <ExternalLink className={styles.instagramButton} href="https://www.instagram.com/restauranteboinabrasa2026?igsi=eTJ3ZHBvMmx3dWRj">
-              <Instagram aria-hidden="true" />
-              <span>Seguir no Instagram</span>
-            </ExternalLink>
+            {facebookHref ? (
+              <ExternalLink className={styles.facebookButton} href={facebookHref}>
+                <Facebook aria-hidden="true" />
+                <span>Seguir no Facebook</span>
+              </ExternalLink>
+            ) : null}
+            {instagramHref ? (
+              <ExternalLink className={styles.instagramButton} href={instagramHref}>
+                <Instagram aria-hidden="true" />
+                <span>Seguir no Instagram</span>
+              </ExternalLink>
+            ) : null}
           </div>
         </section>
 
         <section className={styles.about} aria-labelledby="about-heading">
-          <h2 id="about-heading">O restaurante</h2>
-          <p>O Boi na Brasa é um restaurante e café de ambiente casual, na Rua 1.º de Dezembro, em pleno centro de Torres Vedras. A ementa cruza grelhados como picanha, maminha, bitoque e febras com acompanhamentos de inspiração brasileira, sandes e salgados.</p>
-          <p>Para comer no local, levar ou pedir online, a proposta é simples: comida reconfortante, esplanada no centro da cidade e serviço próximo, sem formalidades.</p>
+          <h2 id="about-heading">{business.about?.heading}</h2>
+          {business.about?.paragraphs?.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
         </section>
 
         <section className={styles.menu} id="ementa" aria-labelledby="menu-heading">
@@ -174,14 +193,14 @@ export function BoiNaBrasaProfile({ business }: { business: Business }) {
             <h2 id="menu-heading">Da brasa e da casa</h2>
             <span>menu atualizado pelo restaurante</span>
           </div>
-          <h3>Menu</h3>
-          <ul className={styles.menuList}>
-            {mains.map((item) => <li key={item.name}><strong>{item.name}</strong><b>{item.price}</b></li>)}
-          </ul>
-          <h3>Incluído em todos os menus</h3>
-          <ul className={styles.menuList}>
-            <li><strong>Entrada + prato + bebida + sobremesa ou café</strong></li>
-          </ul>
+          {business.menu?.map((section) => (
+            <Fragment key={section.title}>
+              <h3>{section.title}</h3>
+              <ul className={styles.menuList}>
+                {section.items.map((item) => <li key={item.name}><strong>{item.name}</strong>{item.price ? <b>{item.price}</b> : null}</li>)}
+              </ul>
+            </Fragment>
+          ))}
           <div className={styles.menuLinks}>
             {deliveryUrl ? <ExternalLink className={styles.glovoButton} href={deliveryUrl}><span>Pedir online na Glovo</span><Bike aria-hidden="true" /></ExternalLink> : null}
             {collectionUrl ? <ExternalLink className={styles.tooGoodToGoButton} href={collectionUrl}><span>Recolha na Too Good To Go</span><Leaf aria-hidden="true" /></ExternalLink> : null}
@@ -231,8 +250,8 @@ export function BoiNaBrasaProfile({ business }: { business: Business }) {
           <div>
             <h2>Localização</h2>
             <div className={styles.mapCard}>
-              <iframe title="Mapa do Boi na Brasa em Torres Vedras" src="https://maps.google.com/maps?q=39.0916177,-9.2583152&z=17&output=embed" loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
-              <div><p>Rua 1.º de Dezembro 5, 2560-300 Torres Vedras</p><small>Plus Code 3PRR+JM · estacionamento público pago nas proximidades</small><ExternalLink href={directionsUrl}>Como chegar</ExternalLink></div>
+              <iframe title={`Mapa do ${business.name} em ${city ?? "Torres Vedras"}`} src="https://maps.google.com/maps?q=39.0916177,-9.2583152&z=17&output=embed" loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+              <div><p>{address}</p><small>Plus Code 3PRR+JM · estacionamento público pago nas proximidades</small><ExternalLink href={directionsUrl}>Como chegar</ExternalLink></div>
             </div>
           </div>
         </section>
@@ -240,7 +259,7 @@ export function BoiNaBrasaProfile({ business }: { business: Business }) {
         <section className={styles.contacts} aria-labelledby="contacts-heading">
           <h2 id="contacts-heading">Contactos</h2>
           <div>
-            <a href={phoneHref}><small>Telefone e reservas</small><strong>+351 261 063 480</strong></a>
+            <a href={phoneHref}><small>Telefone e reservas</small><strong>{phone}</strong></a>
             {deliveryUrl ? <ExternalLink href={deliveryUrl}><small>Entrega</small><strong>Glovo</strong></ExternalLink> : null}
             {collectionUrl ? <ExternalLink href={collectionUrl}><small>Recolha</small><strong>Too Good To Go</strong></ExternalLink> : null}
             <ExternalLink href={mapsHref}><small>Ficha e mapa</small><strong>Google Maps</strong></ExternalLink>
@@ -248,7 +267,7 @@ export function BoiNaBrasaProfile({ business }: { business: Business }) {
         </section>
 
         <footer className={`profile-layout-footer ${styles.footer}`}>
-          <div><strong>Boi na Brasa · Restaurante &amp; Café</strong><p>Rua 1.º de Dezembro 5, 2560-300 Torres Vedras · +351 261 063 480</p></div>
+          <div><strong>{business.name} · {business.category}</strong><p>{address}{phone ? ` · ${phone}` : ""}</p></div>
           <p>Perfil PiriCard criado por PiriLight Studio</p>
         </footer>
       </article>

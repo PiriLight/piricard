@@ -26,6 +26,57 @@ export interface BusinessGalleryImage {
   placeholderLabel?: string;
 }
 
+// Phase 2 data-hygiene additions: business-specific structured content that
+// was previously hardcoded inside individual profile components. Modeled as
+// small, explicit, optional fields on `Business` (not a generic module/block
+// array) — see PIRICARD_DATA_MODEL_V1 notes: this matches every other
+// optional structured field already on `Business` (hours, gallery,
+// socialLinks, externalLinks), so a future business type can add its own new
+// optional field the same way without touching these.
+
+export interface MenuItem {
+  name: string;
+  // Optional: some menu entries (e.g. an inclusions line like "Starter +
+  // main + drink + dessert") describe what's included rather than pricing
+  // one named dish, so they carry no price.
+  price?: string;
+}
+
+export interface MenuSection {
+  title: string;
+  items: MenuItem[];
+}
+
+// Restaurant-specific supplementary info — deliberately its own optional
+// module rather than new universal `Business` core fields, since average
+// spend/cuisine only apply to food-service businesses.
+export interface RestaurantInfo {
+  averageSpend?: string;
+  averageSpendNote?: string;
+  cuisine?: string;
+  cuisineNote?: string;
+}
+
+// Grouped, collapsible services/treatments (e.g. a beauty salon's menu of
+// treatments by category). Canonical definition lives here; components that
+// render it (BeautyTreatmentGroups) import the type from this module rather
+// than redeclaring it.
+export interface TreatmentGroup {
+  id: string;
+  title: string;
+  description: string;
+  items: string[];
+}
+
+// Minimal structured "About" copy (Phase 3.5) — plain heading + paragraphs
+// only, deliberately not a rich-text/block system. Bespoke profile
+// components still decide presentation (kicker label, quote styling,
+// section layout); this only carries the words.
+export interface BusinessAbout {
+  heading?: string;
+  paragraphs?: string[];
+}
+
 export interface Business {
   slug: string;
   name: string;
@@ -37,6 +88,10 @@ export interface Business {
   directoryDescription: string;
   profileDescription?: string;
   positioning?: string;
+  // Structured "About" copy (Phase 3.5) — moved out of bespoke profile JSX;
+  // see BusinessAbout above. Distinct from positioning/profileDescription,
+  // which already have their own established meanings/usages elsewhere.
+  about?: BusinessAbout;
   contact: { phone?: string; whatsapp?: string; email?: string; website?: string };
   location?: { city?: string; address?: string; streetAddress?: string; country?: string; mapsUrl?: string };
   reviewUrl?: string;
@@ -58,6 +113,15 @@ export interface Business {
   hours?: BusinessHoursEntry[];
   assets: { logo?: string; printLogo?: string; printLogoColor?: string; logoOnLight?: boolean; cover?: string; coverAlt?: string; socialImage?: string; qrCode?: string };
   gallery?: BusinessGalleryImage[];
+  // Business-specific structured content (Phase 2) — present only for the
+  // business types that actually have it; absence means "not applicable",
+  // not "not yet filled in". See the type comments above for why each is its
+  // own optional field rather than a generic module array.
+  menu?: MenuSection[];
+  restaurantInfo?: RestaurantInfo;
+  treatmentGroups?: TreatmentGroup[];
+  representedBrands?: string[];
+  productCategories?: string[];
   digitalCard?: { path: string; format: "PNG" | "PDF" };
   theme: BusinessTheme;
   layoutVariant: "editorial" | "compact" | "restaurant" | "racing" | "beauty" | "workshop";
@@ -85,6 +149,16 @@ const businesses = {
     directoryDescription: "Oficina multimarca com mais de duas décadas de experiência em reparação e diagnóstico automóvel.",
     profileDescription: "Reparação, diagnóstico e manutenção automóvel multimarca.",
     positioning: "25 anos de confiança na reparação automóvel.",
+    // Moved here from AutoformigalProfile.tsx (Phase 3.5) — same body copy
+    // verbatim. No `heading` set: the profile's own "Sobre" heading already
+    // derives correctly from positioning/profileDescription/name (in that
+    // order) directly in the component, so adding one here would just
+    // duplicate positioning's value under a second field.
+    about: {
+      paragraphs: [
+        "A Auto Formigal é uma oficina automóvel multimarca em São Pedro da Cadeira, com foco em reparação, diagnóstico e manutenção automóvel. A equipa acompanha veículos de várias marcas, do dia a dia às intervenções mais técnicas.",
+      ],
+    },
     contact: {
       phone: "+351261858239",
       email: "geral@autoformigal.pt",
@@ -200,6 +274,16 @@ const businesses = {
     directoryDescription: "Estética, beleza e bem-estar personalizados, unindo tratamentos, tecnologia e cosmética premium.",
     profileDescription: "Conexão Total com a Beleza — tratamentos personalizados de estética, corpo e bem-estar.",
     positioning: "Elevando a sua beleza com exclusividade.",
+    // Moved here from BeautyConnection360Profile.tsx (Phase 3.5) — the same
+    // quote/heading and body paragraph, verbatim. Distinct from
+    // `positioning` above, which is reused as-is elsewhere on this profile
+    // (the closing section) and is not this quote.
+    about: {
+      heading: "“A verdadeira beleza nasce da conexão entre corpo, mente e energia.”",
+      paragraphs: [
+        "Não seguimos protocolos padronizados. Cada pessoa é única — por isso cada plano parte do corpo, da pele e do momento de vida de quem o procura, unindo estética, tecnologia avançada e bem-estar numa só experiência de transformação.",
+      ],
+    },
     // Phone and email disagreed between the website (916 754 795 /
     // geral@beautyconnection360.com) and an Instagram highlight (933 556 646 /
     // geral.connectionbeauty@gmail.com) — per design-reference/PiriCard for
@@ -239,6 +323,27 @@ const businesses = {
       // business's QR code.
       qrCode: "/piricard-qrs/beauty-connection-360.png",
     },
+    // Moved here from BeautyConnection360Profile.tsx (Phase 1 data-hygiene
+    // pass) — same 5 real interior/product photos, same order, same alt text.
+    gallery: [
+      { src: "/clients/beauty-connection-360/00.webp", alt: "Placa de receção com o logótipo Beauty Connection 360", aspectRatio: "wide" },
+      { src: "/clients/beauty-connection-360/0.webp", alt: "Balcão de receção e vitrine de produtos da Beauty Connection 360", aspectRatio: "square" },
+      { src: "/clients/beauty-connection-360/1.webp", alt: "Expositor de perfumes e cosmética da Beauty Connection 360", aspectRatio: "square" },
+      { src: "/clients/beauty-connection-360/2.webp", alt: "Sala de tratamentos da Beauty Connection 360", aspectRatio: "square" },
+      { src: "/clients/beauty-connection-360/3.webp", alt: "Equipamento de spa de pés da Beauty Connection 360", aspectRatio: "square" },
+    ],
+    // Moved here from BeautyConnection360Profile.tsx (Phase 2) — grouped per
+    // the design handoff's own recommended structure (design-reference/
+    // PiriCard for Beauty Connection 360/uploads/beauticonnection360/
+    // BEAUTY-CONNECTION-360-HANDOFF-PIRICARD-WEBSITE.md, section 15.5),
+    // confirmed service/treatment names from the live website. Same ids,
+    // titles, descriptions, items and order as before.
+    treatmentGroups: [
+      { id: "rosto", title: "Rosto", description: "Cuidados faciais personalizados", items: ["Limpeza de Pele Básica", "Limpeza de Pele Profunda", "Rejuvenescimento / Anti-idade", "Tratamento de Acne", "Dermapen", "Beauty Gold Facial"] },
+      { id: "corpo", title: "Corpo", description: "Tratamentos corporais direcionados", items: ["Tonificação", "Flacidez", "Hidratação Profunda", "Lama do Mar Morto", "Tratamento de Pés com Reflexologia"] },
+      { id: "rituals", title: "Beauty & Rituals", description: "Mãos, pés e rituais de beleza", items: ["SPA das Mãos", "Manicure (Normal • Gel • Gelinho)", "SPA dos Pés", "Pedicure (Normal • Gel • Gelinho)", "Sobrancelhas", "Buço", "Lifting de Pestanas", "Head SPA"] },
+      { id: "bemestar", title: "Bem-estar Integrado", description: "Terapias, fitness e nutrição", items: ["Reiki", "Reflexologia", "Aromaterapia", "Mentorias", "Planos de Fitness Personalizados", "Planos Alimentares Personalizados"] },
+    ],
     digitalCard: undefined,
     theme: {
       primary: "#1c1815",
@@ -265,6 +370,15 @@ const businesses = {
     directoryDescription: "Grelhados, pratos reconfortantes e sabores luso-brasileiros no centro de Torres Vedras.",
     profileDescription: "Picanha, maminha, bitoque e petiscos, com esplanada, takeaway e pedidos online.",
     positioning: "Carne na brasa e comida reconfortante, sem formalidades.",
+    // Moved here from BoiNaBrasaProfile.tsx (Phase 3.5) — same heading and
+    // both paragraphs, verbatim, same order.
+    about: {
+      heading: "O restaurante",
+      paragraphs: [
+        "O Boi na Brasa é um restaurante e café de ambiente casual, na Rua 1.º de Dezembro, em pleno centro de Torres Vedras. A ementa cruza grelhados como picanha, maminha, bitoque e febras com acompanhamentos de inspiração brasileira, sandes e salgados.",
+        "Para comer no local, levar ou pedir online, a proposta é simples: comida reconfortante, esplanada no centro da cidade e serviço próximo, sem formalidades.",
+      ],
+    },
     contact: {
       phone: "+351261063480",
       whatsapp: "+351962874230",
@@ -294,6 +408,12 @@ const businesses = {
       collection: "https://www.toogoodtogo.com/pt/find/torresvedras/restauranteboinabrasa/cookedmeal/refeicao-253056996762700480",
       tripAdvisor: "https://www.tripadvisor.pt/UserReviewEdit-g656858-d34606735-Restaurante_Boi_na_Brasa-Torres_Vedras_Lisbon_District_Central_Portugal.html",
     },
+    // Moved here from BoiNaBrasaProfile.tsx (Phase 1 data-hygiene pass) — same
+    // URLs, now the single source of truth for this business's social links.
+    socialLinks: [
+      { platform: "facebook", label: "Facebook", url: "https://facebook.com/p/Restaurante-Boi-na-Brasa-61590189674905/" },
+      { platform: "instagram", label: "Instagram", url: "https://www.instagram.com/restauranteboinabrasa2026?igsi=eTJ3ZHBvMmx3dWRj" },
+    ],
     services: [
       "Comer no local",
       "Takeaway",
@@ -315,6 +435,33 @@ const businesses = {
       { label: "Sábado", days: [6], periods: [{ open: "09:30", close: "22:00" }] },
       { label: "Domingo", days: [0], periods: [] },
     ],
+    // Moved here from BoiNaBrasaProfile.tsx (Phase 2) — same dish names,
+    // prices, order and the standalone "included in every menu" line.
+    menu: [
+      {
+        title: "Menu",
+        items: [
+          { name: "Maminha Grelhada", price: "12,90 €" },
+          { name: "Bitoque de Vaca", price: "12,90 €" },
+          { name: "Picanha Grelhada", price: "13,90 €" },
+          { name: "Bife da Vazia", price: "14,90 €" },
+        ],
+      },
+      {
+        title: "Incluído em todos os menus",
+        items: [{ name: "Entrada + prato + bebida + sobremesa ou café" }],
+      },
+    ],
+    // Same average-spend/cuisine figures as before, moved out of the
+    // component — no equivalent core field exists (or should exist; this is
+    // restaurant-specific, not universal), so it lives in this small
+    // restaurant-only module instead.
+    restaurantInfo: {
+      averageSpend: "10–15 € por pessoa",
+      averageSpendNote: "indicado no Google por 47 pessoas",
+      cuisine: "Grelhados luso-brasileiros",
+      cuisineNote: "petiscos, sandes e salgados",
+    },
     assets: {
       logo: "/clients/boi-na-brasa/logo.jpg",
       cover: "/clients/boi-na-brasa/boi-na-brasa-header.webp",
@@ -346,6 +493,16 @@ const businesses = {
     indexable: true,
     directoryDescription: "Loja de motos em São Pedro da Cadeira, representante oficial de KTM, Husqvarna, CFMOTO e GASGAS.",
     profileDescription: "Loja de motos em São Pedro da Cadeira, representante oficial de KTM, Husqvarna, CFMOTO e GASGAS.",
+    // Moved here from OFTRacingProfile.tsx (Phase 3.5) — same heading and
+    // body copy verbatim (name/city were already interpolated at render time
+    // since Phase 1; this stores their current resolved values as plain text,
+    // which is what an editable "About" field should hold going forward).
+    about: {
+      heading: "Paixão por motos, dentro e fora da estrada",
+      paragraphs: [
+        "A OFT Racing Shop é uma loja e oficina especializada no mundo das duas rodas, em São Pedro da Cadeira. Representante oficial de marcas como KTM, Husqvarna, CFMOTO e GASGAS, reúne motos, equipamento e acessórios para quem vive o motociclismo dentro e fora da estrada.",
+      ],
+    },
     contact: {
       // Updated 29.08.2026 per explicit client instruction ("current verified business
       // number/email"). NOTE: as of this update, OFT's own live Google Business listing
@@ -404,6 +561,16 @@ const businesses = {
       // business's QR code.
       qrCode: "/piricard-qrs/oft-racing.png",
     },
+    // Moved here from OFTRacingProfile.tsx (Phase 2) — same brand names,
+    // same order. Confirmed via OFT's own official Instagram bio
+    // (instagram.com/oftracing153).
+    representedBrands: ["KTM", "Husqvarna", "CFMOTO", "GASGAS"],
+    // Same shop/product areas as before, same order — confirmed through
+    // OFT's own shop photography and sales posts. Modeled as a plain string
+    // list (like representedBrands above) rather than a richer object, since
+    // that's all today's presentation needs; a future retail business can
+    // reuse this same field shape.
+    productCategories: ["Motos", "Equipamento", "Acessórios"],
     theme: {
       primary: "#0c0c0d",
       secondary: "#08080a",

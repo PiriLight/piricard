@@ -242,13 +242,7 @@ export function AutoformigalProfile({ business }: { business: Business }) {
         <section className={styles.about} aria-labelledby="af-about-heading">
           <p className={styles.kicker}>Sobre a Auto Formigal</p>
           <h2 id="af-about-heading">{business.positioning ?? business.profileDescription ?? business.name}</h2>
-          {business.profileDescription ? (
-            <p>
-              A {business.name} é uma oficina automóvel multimarca em {locationName ?? "São Pedro da Cadeira"}, com foco em
-              reparação, diagnóstico e manutenção automóvel. A equipa acompanha veículos de várias marcas, do dia a dia às
-              intervenções mais técnicas.
-            </p>
-          ) : null}
+          {business.about?.paragraphs?.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
         </section>
 
         <section className={styles.reviews} aria-labelledby="af-reviews-heading">

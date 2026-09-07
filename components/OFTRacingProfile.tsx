@@ -44,14 +44,6 @@ const reviewDistribution = [
 // own highlighted review excerpts) for OFT Racing Shop — not invented.
 const reviewPraise = ["Atendimento", "Profissionalismo", "Serviço pós-venda", "Organização e limpeza"] as const;
 
-// Brands OFT Racing Shop names as official representations in its own official
-// Instagram bio (instagram.com/oftracing153 — the same account linked from this profile).
-const representedBrands = ["KTM", "Husqvarna", "CFMOTO", "GASGAS"] as const;
-
-// Product areas confirmed through OFT's own shop photography and sales posts
-// (motorcycles, helmets/gloves/goggles, exhausts and riding accessories).
-const shopCategories = ["Motos", "Equipamento", "Acessórios"] as const;
-
 function formatPhone(value: string): string {
   const digits = value.replace(/\D/g, "");
   const local = digits.startsWith("351") ? digits.slice(3) : digits;
@@ -134,7 +126,7 @@ export function OFTRacingProfile({ business }: { business: Business }) {
               ) : null}
             </div>
 
-            <h1>OFT Racing Shop</h1>
+            <h1>{business.name}</h1>
             <p className={styles.subtitle}>{business.category}{locationName ? ` · ${locationName}` : ""}</p>
             {address ? <p className={styles.address}>{address}</p> : null}
             {business.hours?.length ? (
@@ -214,7 +206,7 @@ export function OFTRacingProfile({ business }: { business: Business }) {
               <p className={styles.kicker}>Redes sociais</p>
               <h2 id="oft-social-heading">Acompanha a OFT</h2>
             </div>
-            <nav className={styles.socialLinks} aria-label="Redes sociais da OFT Racing Shop">
+            <nav className={styles.socialLinks} aria-label={`Redes sociais da ${business.name}`}>
               {instagramHref ? (
                 <ExternalLink className={styles.instagramCard} href={instagramHref} ariaLabel={`${business.name} no Instagram`}>
                   <span className={styles.platformIcon}><Instagram aria-hidden="true" /></span>
@@ -235,23 +227,19 @@ export function OFTRacingProfile({ business }: { business: Business }) {
 
         <section className={styles.about} aria-labelledby="oft-about-heading">
           <p className={styles.kicker}>Sobre a OFT</p>
-          <h2 id="oft-about-heading">Paixão por motos, dentro e fora da estrada</h2>
-          <p>
-            A OFT Racing Shop é uma loja e oficina especializada no mundo das duas rodas, em São Pedro da Cadeira.
-            Representante oficial de marcas como KTM, Husqvarna, CFMOTO e GASGAS, reúne motos, equipamento e
-            acessórios para quem vive o motociclismo dentro e fora da estrada.
-          </p>
+          <h2 id="oft-about-heading">{business.about?.heading}</h2>
+          {business.about?.paragraphs?.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
           <div className={styles.aboutGrid}>
             <div>
               <p className={styles.kicker}>Representante · Marcas</p>
               <ul className={styles.brandList}>
-                {representedBrands.map((brand) => <li key={brand}>{brand}</li>)}
+                {(business.representedBrands ?? []).map((brand) => <li key={brand}>{brand}</li>)}
               </ul>
             </div>
             <div>
               <p className={styles.kicker}>Encontra na OFT</p>
               <ul className={styles.categoryList}>
-                {shopCategories.map((category) => <li key={category}>{category}</li>)}
+                {(business.productCategories ?? []).map((category) => <li key={category}>{category}</li>)}
               </ul>
             </div>
           </div>
@@ -355,7 +343,7 @@ export function OFTRacingProfile({ business }: { business: Business }) {
         </section>
 
         <footer className={`profile-layout-footer ${styles.footer}`}>
-          <div><strong>OFT Racing Shop</strong><p>{address}{phone ? ` · ${phone}` : ""}</p></div>
+          <div><strong>{business.name}</strong><p>{address}{phone ? ` · ${phone}` : ""}</p></div>
           <PiriCardBrandMark wordmark={<span>Perfil criado com Piri<span>Card</span></span>} />
         </footer>
       </article>

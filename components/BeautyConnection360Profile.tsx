@@ -5,9 +5,9 @@ import { ArrowUpRight, Calendar, Facebook, Instagram, MapPin, Navigation, Phone 
 import { ContactDownloadButton } from "@/components/ContactDownloadButton";
 import { PiriCardBrandMark } from "@/components/PiriCardBrandMark";
 import { BusinessPhotoGallery } from "@/components/BusinessPhotoGallery";
-import { BeautyTreatmentGroups, type TreatmentGroup } from "@/components/BeautyTreatmentGroups";
+import { BeautyTreatmentGroups } from "@/components/BeautyTreatmentGroups";
 import { BeautyStickyBar } from "@/components/BeautyStickyBar";
-import type { Business, BusinessGalleryImage } from "@/lib/businesses";
+import type { Business } from "@/lib/businesses";
 import { getEmailHref, getMapsHref, getPhoneHref, getSafeExternalUrl, getWhatsAppHref } from "@/lib/links";
 import { getPiriCardPdfFilename, getPiriCardPdfPath } from "@/lib/site";
 import styles from "./BeautyConnection360Profile.module.css";
@@ -18,17 +18,6 @@ import styles from "./BeautyConnection360Profile.module.css";
 // PiriCard profile.
 const bcDisplay = Cormorant_Garamond({ subsets: ["latin"], weight: ["500", "600", "700"], style: ["normal", "italic"], variable: "--bc-nf-display", display: "swap" });
 const bcBody = Manrope({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"], variable: "--bc-nf-body", display: "swap" });
-
-// Grouped per the design handoff's own recommended structure (uploads/
-// beauticonnection360/BEAUTY-CONNECTION-360-HANDOFF-PIRICARD-WEBSITE.md,
-// section 15.5) — confirmed service/treatment names from the live website,
-// just organized so ~25 items don't carry equal visual weight.
-const treatmentGroups: TreatmentGroup[] = [
-  { id: "rosto", title: "Rosto", description: "Cuidados faciais personalizados", items: ["Limpeza de Pele Básica", "Limpeza de Pele Profunda", "Rejuvenescimento / Anti-idade", "Tratamento de Acne", "Dermapen", "Beauty Gold Facial"] },
-  { id: "corpo", title: "Corpo", description: "Tratamentos corporais direcionados", items: ["Tonificação", "Flacidez", "Hidratação Profunda", "Lama do Mar Morto", "Tratamento de Pés com Reflexologia"] },
-  { id: "rituals", title: "Beauty & Rituals", description: "Mãos, pés e rituais de beleza", items: ["SPA das Mãos", "Manicure (Normal • Gel • Gelinho)", "SPA dos Pés", "Pedicure (Normal • Gel • Gelinho)", "Sobrancelhas", "Buço", "Lifting de Pestanas", "Head SPA"] },
-  { id: "bemestar", title: "Bem-estar Integrado", description: "Terapias, fitness e nutrição", items: ["Reiki", "Reflexologia", "Aromaterapia", "Mentorias", "Planos de Fitness Personalizados", "Planos Alimentares Personalizados"] },
-];
 
 // Prefilled WhatsApp opening message — used only once a verified WhatsApp
 // number exists (see the contact note below); the message text itself is
@@ -44,19 +33,6 @@ function formatPhone(value: string): string {
   const formatted = local.length === 9 ? local.replace(/(\d{3})(\d{3})(\d{3})/, "$1 $2 $3") : value;
   return digits.startsWith("351") ? `+351 ${formatted}` : formatted;
 }
-
-// Five real interior/product photos now supplied (public/clients/
-// beauty-connection-360/00.webp…3.webp) — replaces the facade photo (already
-// shown in the hero above) and the placeholder slots. 00 is the wall-mounted
-// reception sign, used as the large lead image; 0-3 fill the 2-column grid
-// below it in the exact order supplied.
-const galleryImages: BusinessGalleryImage[] = [
-  { src: "/clients/beauty-connection-360/00.webp", alt: "Placa de receção com o logótipo Beauty Connection 360", aspectRatio: "wide" },
-  { src: "/clients/beauty-connection-360/0.webp", alt: "Balcão de receção e vitrine de produtos da Beauty Connection 360", aspectRatio: "square" },
-  { src: "/clients/beauty-connection-360/1.webp", alt: "Expositor de perfumes e cosmética da Beauty Connection 360", aspectRatio: "square" },
-  { src: "/clients/beauty-connection-360/2.webp", alt: "Sala de tratamentos da Beauty Connection 360", aspectRatio: "square" },
-  { src: "/clients/beauty-connection-360/3.webp", alt: "Equipamento de spa de pés da Beauty Connection 360", aspectRatio: "square" },
-];
 
 export function BeautyConnection360Profile({ business }: { business: Business }) {
   const websiteHref = getSafeExternalUrl(business.contact.website);
@@ -229,8 +205,8 @@ export function BeautyConnection360Profile({ business }: { business: Business })
 
         <section className={styles.aboutDark} aria-labelledby="bc-about-heading">
           <p className={styles.kicker} id="bc-about-heading">Sobre</p>
-          <h2 className={styles.aboutQuote}>“A verdadeira beleza nasce da conexão entre corpo, mente e energia.”</h2>
-          <p className={styles.aboutCopy}>Não seguimos protocolos padronizados. Cada pessoa é única — por isso cada plano parte do corpo, da pele e do momento de vida de quem o procura, unindo estética, tecnologia avançada e bem-estar numa só experiência de transformação.</p>
+          {business.about?.heading ? <h2 className={styles.aboutQuote}>{business.about.heading}</h2> : null}
+          {business.about?.paragraphs?.map((paragraph, index) => <p className={styles.aboutCopy} key={index}>{paragraph}</p>)}
           <div className={styles.pillars}>
             <span>Personalização</span>
             <span>Inovação</span>
@@ -252,12 +228,12 @@ export function BeautyConnection360Profile({ business }: { business: Business })
 
         <section className={styles.treatments} aria-labelledby="bc-treatments-heading">
           <p className={styles.kicker} id="bc-treatments-heading">Tratamentos &amp; Serviços</p>
-          <BeautyTreatmentGroups groups={treatmentGroups} className={styles.treatmentGroups} itemClassName={styles.treatmentGroup} />
+          <BeautyTreatmentGroups groups={business.treatmentGroups ?? []} className={styles.treatmentGroups} itemClassName={styles.treatmentGroup} />
         </section>
 
         <section className={styles.gallery} aria-labelledby="bc-gallery-heading">
           <p className={styles.kicker} id="bc-gallery-heading">O nosso espaço</p>
-          <BusinessPhotoGallery businessName={business.name} images={galleryImages} />
+          <BusinessPhotoGallery businessName={business.name} images={business.gallery ?? []} />
         </section>
 
         <section className={styles.location} aria-labelledby="bc-location-heading">
@@ -288,7 +264,7 @@ export function BeautyConnection360Profile({ business }: { business: Business })
 
         <section className={styles.closing}>
           <h3>“Não é apenas um serviço. É uma experiência de transformação.”</h3>
-          <p>Elevando a sua beleza com exclusividade.</p>
+          <p>{business.positioning}</p>
           {bookHref ? <a href={bookHref} target="_blank" rel="noopener noreferrer">Marcar consulta</a> : null}
         </section>
 

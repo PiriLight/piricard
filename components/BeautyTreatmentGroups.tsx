@@ -1,13 +1,7 @@
 "use client";
 
 import { useState } from "react";
-
-export interface TreatmentGroup {
-  id: string;
-  title: string;
-  description: string;
-  items: string[];
-}
+import type { TreatmentGroup } from "@/lib/businesses";
 
 /**
  * Beauty Connection 360-only expandable treatment/service groups. The full

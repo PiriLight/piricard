@@ -599,6 +599,25 @@
   border-radius: 12px;
   overflow: hidden;
   background: var(--platform-surface);
+  /* Public profile layouts use `position: fixed` sticky action bars/buttons
+     (StickyProfileActions and every bespoke layout's own stickyBar/
+     stickyWhatsapp). `overflow: hidden` alone does NOT stop a `position:
+     fixed` descendant from escaping to the real browser viewport — only an
+     ancestor with `contain`/`transform`/`filter`/`perspective` establishes a
+     new containing block for it. `contain: layout` here is a no-visual-effect
+     way to get that containment.
+     Deliberately placed on THIS element (the static outer card) and NOT on
+     `.admin-preview-viewport` (the inner `overflow: auto` scrolling
+     element): verified live (Phase 4H.5) that when the containing-block
+     ancestor is ITSELF the scrolling element, a `position: fixed`
+     descendant scrolls away WITH its content instead of staying visually
+     pinned — the opposite of real device "fixed" behaviour. Establishing
+     containment on this non-scrolling wrapper instead means the fixed bar's
+     `bottom: 0` is measured against this stable box, so it stays pinned to
+     the bottom of the visible preview window no matter how far the admin
+     has scrolled inside `.admin-preview-viewport` — matching how `position:
+     fixed` actually behaves on a real phone/browser. */
+  contain: layout;
 }
 
 .admin-preview-toolbar {
@@ -614,10 +633,29 @@
 .admin-preview-device-toggle { display: inline-flex; }
 
 .admin-preview-viewport {
+  /* This is the actual miniature "browser window": it owns the vertical
+     scroll (max-height + overflow) through the whole rendered PiriCard.
+     `align-items: flex-start` is the key fix (Phase 4H.5): this is a flex
+     container (for horizontal centering via `justify-content`), and the
+     default `align-items: stretch` was silently forcing the frame below —
+     which has no explicit height — to shrink to THIS element's own (capped)
+     height instead of its natural content height. That left nothing to
+     scroll (the frame's `overflow: hidden` was then clipping, not
+     exposing, everything past the fold). `flex-start` lets the frame grow
+     to its real content height so there is something for `overflow: auto`
+     to scroll through.
+     `overscroll-behavior: contain` stops scroll-chaining: once the admin
+     hits the top/bottom of the preview, further wheel/touch scroll no
+     longer leaks out to scroll the real Admin page underneath it.
+     No `contain`/`transform` here on purpose — see `.admin-preview-pane`
+     for why the `position: fixed` containing block lives one level up,
+     on the non-scrolling ancestor instead of this scrolling one. */
   max-height: 80vh;
   overflow: auto;
+  overscroll-behavior: contain;
   padding: 20px;
   display: flex;
+  align-items: flex-start;
   justify-content: center;
   background: #d9dee8;
 }
@@ -629,15 +667,6 @@
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 8px 24px rgba(20, 30, 60, .18);
-  /* Public profile layouts use `position: fixed` sticky action bars/buttons
-     (StickyProfileActions and every bespoke layout's own stickyBar/
-     stickyWhatsapp). `overflow: hidden` alone does NOT stop a `position:
-     fixed` descendant from escaping to the real browser viewport — only an
-     ancestor with `contain`/`transform`/`filter`/`perspective` establishes a
-     new containing block for it. Without this, those bars render pinned to
-     the actual admin page window instead of this preview frame. `contain:
-     layout` is a no-visual-effect way to get that containment. */
-  contain: layout;
 }
 
 .admin-preview-frame-mobile {
@@ -976,4 +1005,31 @@
 @media (max-width: 899px) {
   .admin-theme-color-grid { grid-template-columns: 1fr; }
   .admin-layout-option { flex-direction: column; }
+}
+
+/* --- Phase 4H.5: mobile-safe form control typography ---
+   iOS Safari auto-zooms the page on focus of any text input/select/textarea
+   computed at under 16px, and un-zooms only on blur (or not at all until the
+   admin manually pinches back out) — several of this file's field styles
+   sat at 13–15px. Bumping those specific rules to 16px on narrow viewports
+   is the correct, minimal fix: it prevents the unwanted AUTOMATIC zoom
+   without touching the viewport meta (no `user-scalable=no` /
+   `maximum-scale=1` anywhere in this app — see app/layout.tsx) — manual
+   pinch-to-zoom accessibility is completely unaffected. Desktop keeps its
+   existing, denser sizes; only this breakpoint (matching the other
+   true-mobile block above) changes. */
+@media (max-width: 640px) {
+  .admin-login-field input,
+  .admin-list-search input,
+  .admin-field input,
+  .admin-field textarea,
+  .admin-field select,
+  .admin-hours-times input,
+  .admin-social-row-fields input,
+  .admin-social-row-fields select,
+  .admin-simple-list-row input,
+  .admin-nested-card-title-input,
+  .admin-nested-item-row input {
+    font-size: 16px;
+  }
 }

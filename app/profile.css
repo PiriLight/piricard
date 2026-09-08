@@ -204,31 +204,13 @@ body:has(.profile-gallery-dialog[open]) { overflow: hidden; }
 .profile-gallery-lightbox-image img { object-fit: contain; }
 .profile-gallery-dialog figcaption { max-width: 52rem; color: #d9def0; font-size: 12px; line-height: 1.4; text-align: center; }
 
+/* Phase 4H.5: this section used to also host an obsolete "Cartão digital"
+   flip-card (.digital-business-card and its .digital-card-* parts, removed
+   along with the DigitalBusinessCard component) — a redundant restatement
+   of contact details already shown higher up the profile. `.card-actions`
+   below (ProfileActions' Share/QR/download-PiriCard row) is still current
+   and still lives in this section. */
 .profile-digital-tools { padding: 28px 20px 8px; }
-.profile-digital-tools .profile-section-heading { margin-inline: 0; }
-.digital-business-card { position: relative; isolation: isolate; overflow: hidden; border-radius: 8px; padding: 18px; background: var(--profile-primary); color: #fff; }
-.digital-business-card::before,
-.digital-business-card::after { content: ""; position: absolute; z-index: -1; top: -40px; height: 260px; transform: skewX(-20deg); }
-.digital-business-card::before { right: -30px; width: 70px; background: var(--profile-accent); }
-.digital-business-card::after { right: 34px; width: 9px; background: rgba(255,255,255,.45); }
-.digital-card-header { display: flex; align-items: flex-start; gap: 12px; }
-.digital-card-logo { width: 56px; height: 56px; flex: none; border-radius: 6px; padding: 5px; overflow: hidden; background: #fff; }
-.digital-card-logo img { width: 46px; height: 46px; display: block; object-fit: contain; }
-.digital-card-copy { min-width: 0; padding-top: 2px; }
-.digital-card-category { margin: 0 0 4px; color: #9ff07a; font-size: 10px; font-weight: 700; line-height: 1; letter-spacing: .12em; text-transform: uppercase; }
-.digital-card-copy h3 { margin: 0; color: #fff; font-size: 23px; font-weight: 800; line-height: 1; letter-spacing: -.025em; }
-.digital-card-details { margin: 16px 0 0; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.22); }
-.digital-card-details div { min-width: 0; display: grid; grid-template-columns: 14px minmax(0,1fr); align-items: start; gap: 9px; margin-top: 9px; }
-.digital-card-details div:first-child { margin-top: 0; }
-.digital-card-details dt { height: 14px; color: #9ff07a; }
-.digital-card-details dt svg { width: 14px; height: 14px; stroke-width: 1.9; }
-.digital-card-details dd { min-width: 0; margin: 0; color: #eaedfa; font-size: 14px; font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; }
-.digital-card-details div:last-child dd { max-width: 26ch; }
-.digital-card-footer { min-height: 49px; margin-top: 16px; padding-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; border-top: 1px solid rgba(255,255,255,.22); }
-.digital-card-signature { margin: 0; color: rgba(255,255,255,.8); font-size: 9.5px; font-weight: 700; line-height: 1; letter-spacing: .12em; text-transform: uppercase; }
-.digital-card-signature span { color: #9ff07a; }
-.digital-card-save { min-height: 36px; border: 0; border-radius: 5px; padding: 0 14px; display: inline-flex; align-items: center; gap: 7px; background: #fff; color: var(--profile-primary); cursor: pointer; font: 700 13px/1 Archivo,Arial,sans-serif; }
-.digital-card-save svg { display: none; }
 
 .card-actions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin-top: 10px; }
 .card-actions a,

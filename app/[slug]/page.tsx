@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
+import { BfcacheRefresh } from "@/components/BfcacheRefresh";
 import { BusinessProfile } from "@/components/BusinessProfile";
 import { getBusinessWithLiveReviews } from "@/lib/google-reviews";
 import { getPublicBusinessBySlug, getPublicDirectoryBusinesses } from "@/lib/public/business";
@@ -75,5 +76,10 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   // Only the actual rendered page fetches the live Google review snapshot —
   // generateMetadata above stays cheap/side-effect-free.
   const withLiveReviews = await getBusinessWithLiveReviews(business);
-  return <BusinessProfile business={withLiveReviews} />;
+  return (
+    <>
+      <BfcacheRefresh />
+      <BusinessProfile business={withLiveReviews} />
+    </>
+  );
 }

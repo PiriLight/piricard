@@ -22,7 +22,6 @@ import { BoiNaBrasaProfile } from "@/components/BoiNaBrasaProfile";
 import { OFTRacingProfile } from "@/components/OFTRacingProfile";
 import { BeautyConnection360Profile } from "@/components/BeautyConnection360Profile";
 import { BusinessPhotoGallery } from "@/components/BusinessPhotoGallery";
-import { DigitalBusinessCard } from "@/components/DigitalBusinessCard";
 import { BusinessHoursSchedule, OpeningStatus, TodayHours } from "@/components/OpeningStatus";
 import { ProfileActions } from "@/components/ProfileActions";
 import { StickyProfileActions } from "@/components/StickyProfileActions";
@@ -152,7 +151,6 @@ function InformationRow({ icon, label, children, href, external = false }: { ico
 }
 
 function BusinessInformation({ business, links, canonicalUrl, contactFilename }: { business: Business; links: ProfileLinks; canonicalUrl: string; contactFilename: string }) {
-  const cardWebsite = links.website ? displayUrl(links.website) : displayUrl(canonicalUrl);
   return (
     <section className="profile-information" aria-labelledby="information-heading">
       <div className="profile-section-heading"><h2 id="information-heading">Informação útil</h2><span aria-hidden="true" /></div>
@@ -185,19 +183,13 @@ function BusinessInformation({ business, links, canonicalUrl, contactFilename }:
         </section>
       ) : null}
 
-      <section className="profile-digital-tools" aria-labelledby="digital-card-heading">
-        <div className="profile-section-heading is-small"><h3 id="digital-card-heading">Cartão digital</h3><span aria-hidden="true" /></div>
-        <DigitalBusinessCard
-          businessName={business.name}
-          category={business.category}
-          phone={business.contact.phone ? formatPhone(business.contact.phone) : undefined}
-          email={business.contact.email}
-          address={business.location?.address}
-          website={cardWebsite}
-          logo={business.assets.logo}
-          contactEndpoint={getPiriCardPdfPath(business.slug)}
-          contactFilename={contactFilename}
-        />
+      {/* Phase 4H.5: this used to also render an obsolete duplicate-contact
+          flip-card widget — a redundant restatement of the phone/email/
+          website/address already shown above, no longer part of the
+          product; its component file was deleted. The class name below
+          stays as the existing CSS hook (grid placement + spacing at
+          various breakpoints) for this actions row, not a UI label. */}
+      <section className="profile-digital-tools" aria-label="Ações do perfil">
         <ProfileActions businessName={business.name} canonicalUrl={canonicalUrl} slug={business.slug} contactFilename={contactFilename} digitalCard={business.digitalCard} showContact={false} />
       </section>
     </section>

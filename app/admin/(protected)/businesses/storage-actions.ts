@@ -1,7 +1,18 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { buildAssetPath, extractAssetPath, PIRICARD_ASSETS_BUCKET, validateImageFile, type ImageKind } from "@/lib/admin/storage";
+import {
+  businessAssetsPrefix,
+  buildAssetPath,
+  extractAssetPath,
+  isBusinessOwnedAssetPath,
+  PIRICARD_ASSETS_BUCKET,
+  validateImageFile,
+  type ImageKind,
+} from "@/lib/admin/storage";
+
+const BUSINESS_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const ASSET_KINDS: ImageKind[] = ["logo", "cover", "gallery"];
 
 /**
  * Phase 4H — shared Storage server actions for business image assets (logo,
@@ -140,4 +151,59 @@ export async function finalizeDraftAssetsAction(
   }
 
   return { status: "success", movedPaths };
+}
+
+export type DeleteBusinessAssetsResult = { removed: string[]; failed: string[] };
+
+/**
+ * Pre-deployment addition — permanent business deletion (Step 6): removes
+ * every Storage object under businesses/{businessId}/{logo,cover,gallery}/
+ * for ONE specific, already-deleted business. Called only AFTER the
+ * `businesses` row (and its cascaded child rows) is already gone from the
+ * database — this is best-effort cleanup of now-orphaned files, never a
+ * precondition for or a way to undo the database deletion.
+ *
+ * Safety: `businessId` must be a well-formed UUID (rejects anything else
+ * outright — a "draft-*" key, a malformed string — before touching Storage
+ * at all). `.list()` can only ever enumerate objects that are already
+ * inside that one exact business's own folder (Storage lists by exact
+ * directory segment, not substring/prefix search), and every path it
+ * returns is re-checked with `isBusinessOwnedAssetPath` before being added
+ * to the delete batch — so this can never remove another business's asset,
+ * a legacy `/clients/...` path, an external URL, or an unrelated
+ * in-progress Create-wizard draft folder.
+ *
+ * A Storage failure here is reported back, never thrown — per the phase's
+ * explicit failure strategy, database integrity always wins: a leftover
+ * orphaned file is a harmless, boundedly-sized cost; leaving the Admin in
+ * an error state (or worse, trying to "undo" an already-successful database
+ * deletion) over a cleanup failure would not be.
+ */
+export async function deleteBusinessAssetsAction(businessId: string): Promise<DeleteBusinessAssetsResult> {
+  if (!BUSINESS_ID_PATTERN.test(businessId)) {
+    return { removed: [], failed: [] };
+  }
+
+  const supabase = await createClient();
+  const prefix = businessAssetsPrefix(businessId);
+  const candidatePaths: string[] = [];
+
+  for (const kind of ASSET_KINDS) {
+    const { data: files } = await supabase.storage.from(PIRICARD_ASSETS_BUCKET).list(`${prefix}/${kind}`);
+    for (const file of files ?? []) {
+      const path = `${prefix}/${kind}/${file.name}`;
+      if (isBusinessOwnedAssetPath(path, businessId)) candidatePaths.push(path);
+    }
+  }
+
+  if (candidatePaths.length === 0) {
+    return { removed: [], failed: [] };
+  }
+
+  const { error } = await supabase.storage.from(PIRICARD_ASSETS_BUCKET).remove(candidatePaths);
+  if (error) {
+    return { removed: [], failed: candidatePaths };
+  }
+
+  return { removed: candidatePaths, failed: [] };
 }

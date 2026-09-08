@@ -22,7 +22,12 @@ type ProfileContentRow = {
   category: string;
 };
 
-export default async function AdminBusinessListPage() {
+export default async function AdminBusinessListPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ deleted?: string; storageWarning?: string }>;
+}) {
+  const { deleted, storageWarning } = await searchParams;
   const supabase = await createClient();
 
   // The platform-admin RLS branch (security.is_platform_admin(), tested in
@@ -70,6 +75,12 @@ export default async function AdminBusinessListPage() {
 
   return (
     <section className="admin-list">
+      {deleted ? (
+        <p className="admin-save-success">
+          PiriCard &ldquo;{deleted}&rdquo; eliminado permanentemente.
+          {storageWarning ? ` ${storageWarning}` : ""}
+        </p>
+      ) : null}
       <div className="admin-list-header">
         <div>
           <h1>Negócios</h1>

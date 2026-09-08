@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { buildAssetPath, extractAssetPath, isPiricardAssetPath, PIRICARD_ASSETS_BUCKET, validateImageFile } from "@/lib/admin/storage";
+import {
+  businessAssetsPrefix,
+  buildAssetPath,
+  extractAssetPath,
+  isBusinessOwnedAssetPath,
+  isPiricardAssetPath,
+  PIRICARD_ASSETS_BUCKET,
+  validateImageFile,
+} from "@/lib/admin/storage";
 
 /**
  * Phase 4H — Step 14 regression guard for the pure Storage helpers used by
@@ -98,5 +106,58 @@ describe("extractAssetPath / isPiricardAssetPath", () => {
   it("returns null for a URL from a DIFFERENT bucket (never assume ownership)", () => {
     const url = "https://scneuxxgzlqcsxdzthxb.supabase.co/storage/v1/object/public/some-other-bucket/businesses/abc/logo/x.png";
     expect(extractAssetPath(url)).toBeNull();
+  });
+});
+
+/**
+ * Pre-deployment addition — permanent business deletion, Storage cleanup
+ * safety (Step 6/9 of that phase: "Storage cleanup must never use a broad
+ * prefix that could match another UUID" / "external/legacy asset URLs are
+ * never treated as deletable bucket objects").
+ */
+describe("businessAssetsPrefix / isBusinessOwnedAssetPath", () => {
+  const businessA = "11111111-1111-1111-1111-111111111111";
+  const businessB = "22222222-2222-2222-2222-222222222222";
+  // Deliberately shares businessA's UUID as a literal string PREFIX — the
+  // exact shape of collision Step 6 warns about — to prove the boundary
+  // check (not a plain .startsWith on the raw id) actually holds.
+  const businessAPrefixCollision = "11111111-1111-1111-1111-1111111111110-not-a-real-uuid";
+
+  it("builds the exact business-scoped folder prefix", () => {
+    expect(businessAssetsPrefix(businessA)).toBe(`businesses/${businessA}`);
+  });
+
+  it("recognizes a path that genuinely belongs to this exact business", () => {
+    const path = `businesses/${businessA}/logo/deadbeef-0000-0000-0000-000000000000.webp`;
+    expect(isBusinessOwnedAssetPath(path, businessA)).toBe(true);
+  });
+
+  it("rejects the SAME path when checked against a different business id", () => {
+    const path = `businesses/${businessA}/logo/deadbeef-0000-0000-0000-000000000000.webp`;
+    expect(isBusinessOwnedAssetPath(path, businessB)).toBe(false);
+  });
+
+  it("rejects a path whose business-key segment merely starts with the target id (string-prefix collision guard)", () => {
+    const path = `businesses/${businessAPrefixCollision}/logo/deadbeef-0000-0000-0000-000000000000.webp`;
+    expect(isBusinessOwnedAssetPath(path, businessA)).toBe(false);
+  });
+
+  it("rejects a draft-key folder (never a real business id) even if it embeds the id as a substring", () => {
+    const path = `businesses/draft-${businessA}/logo/deadbeef-0000-0000-0000-000000000000.webp`;
+    expect(isBusinessOwnedAssetPath(path, businessA)).toBe(false);
+  });
+
+  it("rejects a legacy static path — never treated as a deletable bucket object", () => {
+    expect(isBusinessOwnedAssetPath("/clients/autoformigal/logo/autoformigal-approved.jpg", businessA)).toBe(false);
+  });
+
+  it("rejects an arbitrary external URL — never treated as a deletable bucket object", () => {
+    expect(isBusinessOwnedAssetPath("https://example.com/some/photo.jpg", businessA)).toBe(false);
+  });
+
+  it("rejects a well-formed path for a sibling business even one character off", () => {
+    const almostB = businessB.slice(0, -1) + "3"; // differs in the last character only
+    const path = `businesses/${almostB}/cover/deadbeef-0000-0000-0000-000000000000.jpg`;
+    expect(isBusinessOwnedAssetPath(path, businessB)).toBe(false);
   });
 });

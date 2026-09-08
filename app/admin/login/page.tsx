@@ -31,6 +31,9 @@ export default async function AdminLoginPage({
   return (
     <main className="admin-auth-screen">
       <div className="admin-auth-card">
+        <Link href="/" className="admin-back-to-site-link">
+          ← Voltar ao PiriCard
+        </Link>
         <p className="admin-auth-brand">PiriLight · PiriCard</p>
         <h1>{isForgotPasswordMode ? "Recuperar acesso" : "Acesso interno"}</h1>
 

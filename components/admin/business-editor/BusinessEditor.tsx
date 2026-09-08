@@ -33,6 +33,7 @@ import ThemeSection from "./ThemeSection";
 import AssetsSection from "./AssetsSection";
 import TechnicalConfigSection from "./TechnicalConfigSection";
 import PublishSection from "./PublishSection";
+import DeleteBusinessSection from "./DeleteBusinessSection";
 import PreviewPane from "./PreviewPane";
 
 type SectionKey =
@@ -327,15 +328,23 @@ export default function BusinessEditor({
             <TechnicalConfigSection draft={draft} dispatch={dispatch} published={published} errors={configFieldErrors} />
           ) : null}
           {activeSection === "publish" ? (
-            <PublishSection
-              businessId={businessId}
-              draft={draft}
-              published={published}
-              isDirty={isContentDirty || isConfigDirty}
-              archivedAt={archivedAt}
-              onPublishedChange={setPublished}
-              onArchivedChange={setArchivedAt}
-            />
+            <>
+              <PublishSection
+                businessId={businessId}
+                draft={draft}
+                published={published}
+                isDirty={isContentDirty || isConfigDirty}
+                archivedAt={archivedAt}
+                onPublishedChange={setPublished}
+                onArchivedChange={setArchivedAt}
+              />
+              {/* configBaseline/contentBaseline (the last known-persisted
+                  snapshot), not `draft` — the confirmation must check
+                  against what's actually saved in the database, never an
+                  unsaved in-progress slug/name edit. The server re-verifies
+                  independently regardless (see deleteBusinessAction). */}
+              <DeleteBusinessSection businessId={businessId} slug={configBaseline.slug} name={contentBaseline.name} />
+            </>
           ) : null}
         </div>
 

@@ -107,6 +107,22 @@
 
 .admin-login-back-link:hover { color: var(--platform-text); }
 
+/* Pre-deployment addition: deterministic "← Voltar ao PiriCard" (always "/",
+   never browser-history back() — /admin/login can be opened directly with
+   no prior in-app history). Sits above the brand line so it renders in
+   every state this card can be in (normal login / forgot-password / "sem
+   acesso"), not duplicated per branch. */
+.admin-back-to-site-link {
+  display: inline-block;
+  margin-bottom: 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--platform-muted);
+  text-decoration: none;
+}
+
+.admin-back-to-site-link:hover { color: var(--platform-accent-strong); }
+
 .admin-login-link-button {
   display: inline-block;
   text-align: center;
@@ -993,6 +1009,92 @@
   gap: 12px;
   background: rgba(200, 200, 200, .06);
 }
+
+/* --- Pre-deployment addition: permanent business deletion --- */
+
+.admin-danger-zone {
+  margin-top: 28px;
+  padding: 16px;
+  border: 1px solid rgba(255, 90, 90, .35);
+  border-radius: 10px;
+  background: rgba(255, 90, 90, .06);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-danger-zone-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: #ff8a8a;
+}
+
+.admin-danger-button {
+  align-self: flex-start;
+  background: transparent;
+  border: 1px solid rgba(255, 90, 90, .55);
+  border-radius: 8px;
+  padding: 9px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ff8a8a;
+  cursor: pointer;
+}
+
+.admin-danger-button:hover:not(:disabled) { background: rgba(255, 90, 90, .12); }
+.admin-danger-button:disabled { opacity: .45; cursor: not-allowed; }
+
+.admin-delete-dialog {
+  width: min(calc(100% - 32px), 480px);
+  max-height: calc(100svh - 48px);
+  overflow: auto;
+  margin: auto;
+  border: 1px solid rgba(255, 90, 90, .45);
+  border-radius: 12px;
+  padding: 22px;
+  background: var(--platform-surface);
+  color: var(--platform-text);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, .5);
+}
+
+.admin-delete-dialog::backdrop { background: rgba(3, 4, 8, .78); backdrop-filter: blur(2px); }
+
+.admin-delete-dialog h2 { margin: 0 0 12px; font-size: 19px; }
+.admin-delete-dialog p { margin: 0 0 14px; font-size: 14px; line-height: 1.5; color: var(--platform-muted); }
+.admin-delete-dialog p strong { color: var(--platform-text); }
+.admin-delete-dialog code {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, .08);
+  color: var(--platform-text);
+  font-size: 13px;
+}
+
+.admin-delete-dialog-label { display: block; margin-bottom: 6px; font-size: 13px; color: var(--platform-text); }
+
+.admin-delete-dialog input {
+  width: 100%;
+  background: var(--platform-bg);
+  border: 1px solid var(--platform-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--platform-text);
+  /* 16px, not the denser 14px used elsewhere in this file — this is a
+     brand-new standalone field (not covered by the existing mobile-safe
+     @media override further below), and this is the single most
+     consequence-sensitive input in the whole Admin: it must never trigger
+     iOS Safari's focus-zoom while the admin is mid-typing a destructive
+     confirmation. */
+  font-size: 16px;
+  margin-bottom: 14px;
+}
+
+.admin-delete-dialog input:focus-visible { border-color: #ff8a8a; }
+
+.admin-delete-dialog-actions { display: flex; justify-content: flex-end; gap: 10px; }
 
 /* Create PiriCard wizard */
 .admin-create-wizard {

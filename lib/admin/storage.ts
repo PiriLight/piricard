@@ -75,3 +75,37 @@ export function extractAssetPath(value: string | undefined | null): string | nul
 export function isPiricardAssetPath(value: string | undefined | null): boolean {
   return extractAssetPath(value) !== null;
 }
+
+/**
+ * Pre-deployment addition — permanent business deletion (Step 6): the
+ * bare-path prefix that owns EVERY asset ever uploaded for one specific,
+ * existing business. Deliberately takes a real business id only (never a
+ * "draft-*" key — a draft has no business row to delete yet) so the caller
+ * cannot accidentally point Storage cleanup at an in-progress Create-wizard
+ * upload session.
+ */
+export function businessAssetsPrefix(businessId: string): string {
+  return `businesses/${businessId}`;
+}
+
+/**
+ * True only when `path` is one of THIS app's own bare Storage paths
+ * (matches ASSET_PATH_PATTERN — same check extractAssetPath uses) AND its
+ * business-key segment is EXACTLY `businessId`, not merely a string that
+ * starts with the same characters. Two distinct business UUIDs can never
+ * collide here: `ASSET_PATH_PATTERN` requires a `/` immediately after the
+ * business-key segment, so "businesses/<id>/logo/..." can only match the
+ * one business whose id is that exact segment — never a different id that
+ * happens to share a prefix, never a "draft-*" key, never a legacy
+ * `/clients/...` path or an external URL (those already fail
+ * ASSET_PATH_PATTERN and return false here too). Used to double-check every
+ * path a Storage `list()` call returns before it is ever handed to
+ * `remove()` — defense in depth on top of `list()` itself only being able
+ * to enumerate objects that are already inside that one business's own
+ * folder.
+ */
+export function isBusinessOwnedAssetPath(path: string, businessId: string): boolean {
+  if (!ASSET_PATH_PATTERN.test(path)) return false;
+  const [, businessKey] = path.split("/");
+  return businessKey === businessId;
+}

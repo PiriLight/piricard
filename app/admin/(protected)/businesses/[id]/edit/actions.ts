@@ -12,7 +12,7 @@ import {
 } from "@/lib/admin/validation";
 import type { BusinessConfigPayload, BusinessCoreSavePayload, ModuleActivation, ModuleContentSavePayload } from "@/lib/admin/business-mapping";
 import type { ModuleKey } from "@/lib/supabase/types";
-import { deleteBusinessImageAction } from "@/app/admin/(protected)/businesses/storage-actions";
+import { deleteBusinessAssetsAction, deleteBusinessImageAction } from "@/app/admin/(protected)/businesses/storage-actions";
 import { isPiricardAssetPath } from "@/lib/admin/storage";
 
 /**
@@ -377,4 +377,86 @@ export async function unarchiveBusinessAction(businessId: string): Promise<Publi
   revalidatePath("/admin");
 
   return { status: "success" };
+}
+
+export type DeleteBusinessState =
+  | { status: "idle" }
+  | { status: "error"; message: string }
+  | { status: "success"; slug: string; storageWarning?: string };
+
+/**
+ * Pre-deployment addition — permanent, irreversible business deletion.
+ * Targets exactly one business by its immutable UUID, never by slug/name/
+ * row position. Two independent identity checks guard against a stale
+ * Admin tab or a caller passing a mismatched id/slug pair (Step 8 of the
+ * phase — "safety against stale UI"):
+ *
+ *   1. Here: re-reads the row by `businessId` and requires its CURRENT
+ *      `slug` to equal `expectedSlug` before even attempting the RPC — a
+ *      friendlier, earlier failure than an opaque RPC error if the record
+ *      changed since the editor page loaded.
+ *   2. Inside admin_delete_business itself (20260908120000_admin_delete_
+ *      business_rpc.sql): the SAME check, re-run atomically inside the one
+ *      statement that performs the delete — the actual, final authority,
+ *      since step 1's read and the delete could otherwise race.
+ *
+ * Authorization is enforced entirely by the RPC (SECURITY DEFINER, gated on
+ * security.is_platform_admin() — see the migration); this action never
+ * checks admin status itself, matching every other write in this file.
+ *
+ * Database deletion (this business row + all cascaded child rows, verified
+ * `on delete cascade` across all 14 tables — see the migration) always
+ * takes priority over Storage cleanup: the RPC call either fully succeeds
+ * or fully fails (a single statement), and Storage cleanup is only
+ * attempted AFTER that succeeds, and its own failure is reported back
+ * (`storageWarning`) rather than treated as this action's failure — an
+ * orphaned Storage file is an acceptable, bounded cost; a business whose
+ * database deletion "succeeded" but is reported as failed (or, worse,
+ * re-created) because of an unrelated Storage error would not be.
+ */
+export async function deleteBusinessAction(businessId: string, expectedSlug: string): Promise<DeleteBusinessState> {
+  const supabase = await createClient();
+
+  const { data: current, error: fetchError } = await supabase
+    .from("businesses")
+    .select("id, slug")
+    .eq("id", businessId)
+    .maybeSingle();
+
+  if (fetchError || !current) {
+    return { status: "error", message: "Este PiriCard já não foi encontrado — pode já ter sido eliminado." };
+  }
+  if (current.slug !== expectedSlug) {
+    return {
+      status: "error",
+      message: "A ficha foi alterada entretanto (slug diferente do esperado). Recarrega a página e tenta novamente.",
+    };
+  }
+
+  const { error: deleteError } = await supabase.rpc("admin_delete_business", {
+    p_business_id: businessId,
+    p_expected_slug: expectedSlug,
+  });
+
+  if (deleteError) {
+    return {
+      status: "error",
+      message: "Não foi possível eliminar. Confirma que a tua conta tem acesso de administrador PiriLight e que a ficha ainda corresponde ao slug apresentado.",
+    };
+  }
+
+  // The business row is already permanently gone at this point — everything
+  // below is best-effort cleanup, never a reason to report failure.
+  const { failed } = await deleteBusinessAssetsAction(businessId);
+
+  revalidatePath("/admin");
+  revalidatePath(`/admin/businesses/${businessId}/edit`);
+
+  return {
+    status: "success",
+    slug: expectedSlug,
+    ...(failed.length > 0
+      ? { storageWarning: `${failed.length} ficheiro${failed.length === 1 ? "" : "s"} de imagem não ${failed.length === 1 ? "foi removido" : "foram removidos"} automaticamente (não crítico).` }
+      : {}),
+  };
 }

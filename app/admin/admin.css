@@ -338,8 +338,12 @@
   background: var(--platform-bg);
 }
 
-.admin-mobile-view-toggle,
-.admin-preview-device-toggle {
+/* Single-layout change: the "Telemóvel/Desktop" preview device toggle
+   (.admin-preview-device-toggle) was removed — individual PiriCard pages
+   have exactly one layout now, so there is nothing left to switch between.
+   .admin-mobile-view-toggle (the unrelated "Editar/Pré-visualização"
+   toggle, for narrow Admin screens) is untouched. */
+.admin-mobile-view-toggle {
   display: none;
   gap: 6px;
   border: 1px solid var(--platform-border);
@@ -347,8 +351,7 @@
   padding: 3px;
 }
 
-.admin-mobile-view-toggle button,
-.admin-preview-device-toggle button {
+.admin-mobile-view-toggle button {
   background: transparent;
   border: none;
   border-radius: 6px;
@@ -358,8 +361,7 @@
   cursor: pointer;
 }
 
-.admin-mobile-view-toggle button.is-active,
-.admin-preview-device-toggle button.is-active {
+.admin-mobile-view-toggle button.is-active {
   background: var(--platform-surface);
   color: var(--platform-text);
   font-weight: 600;
@@ -646,7 +648,6 @@
 }
 
 .admin-preview-label { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--platform-muted); }
-.admin-preview-device-toggle { display: inline-flex; }
 
 .admin-preview-viewport {
   /* This is the actual miniature "browser window": it owns the vertical
@@ -677,17 +678,18 @@
 }
 
 .admin-preview-frame {
+  /* Single-layout change: individual PiriCard pages now render exactly one
+     layout (the mobile one) at every viewport size, capped at
+     --profile-card-max-width (430px) in app/profile-layout.css. The Admin
+     Preview mirrors that same canonical width here instead of the old wide
+     "desktop mini-site" frame, so what admins see while editing matches
+     what the public page actually looks like. */
   width: 100%;
-  max-width: 1100px;
+  max-width: 430px;
   background: #fff;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 8px 24px rgba(20, 30, 60, .18);
-}
-
-.admin-preview-frame-mobile {
-  width: 390px;
-  max-width: 100%;
 }
 
 /* --- Responsive: editor stacks on mobile, driven by the Edit/Preview toggle --- */

@@ -336,7 +336,12 @@
    color (unchanged); the second button (previously "Como chegar", now QR
    Code — .stickyCall keeps its old name to avoid an unrelated prop-name
    churn) goes to a neutral white/cream like Boi's own QR button. */
-.stickyBar { position: fixed; z-index: 40; inset: auto 0 0; padding: 10px 12px; background: linear-gradient(to top, rgba(248, 244, 236, .98), rgba(248, 244, 236, .72)); animation: bcBarIn 220ms ease; }
+/* Single-layout change: left/right/width replace the old edge-to-edge
+   `inset: auto 0 0` so this bar matches the card's own width/centering
+   (app/profile-layout.css --profile-card-max-width) instead of the real
+   browser viewport — mathematically identical to the old rule at any width
+   <= that cap, i.e. unchanged on every viewport this was ever "mobile" on. */
+.stickyBar { position: fixed; z-index: 40; left: 50%; right: auto; bottom: 0; top: auto; width: min(100%, var(--profile-card-max-width)); transform: translateX(-50%); padding: 10px 12px; background: linear-gradient(to top, rgba(248, 244, 236, .98), rgba(248, 244, 236, .72)); animation: bcBarIn 220ms ease; }
 .stickyBar > div { width: min(100%, 520px); margin-inline: auto; display: flex; gap: 8px; }
 /* min-width: 0 + overflow/ellipsis on the label is what stops long labels
    from escaping the button at narrow widths; flex: 1 keeps both buttons an
@@ -358,7 +363,12 @@
    formula, corner position, shared offset above the bar), in
    WhatsApp's own recognizable green rather than a Beauty-tinted color. */
 .page .stickyWhatsapp {
-  position: fixed; z-index: 41; right: 16px;
+  position: fixed; z-index: 41;
+  /* Same idea as .stickyBar above: on a viewport narrower than the card's
+     own cap this resolves to exactly 16px (unchanged); once the viewport
+     grows past the card, it tracks the card's actual right edge instead of
+     the browser window's. */
+  right: max(16px, calc((100vw - var(--profile-card-max-width)) / 2 + 16px));
   width: 52px; height: 52px;
   display: grid; place-items: center;
   border-radius: 50%;
@@ -379,28 +389,12 @@
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-@media (min-width: 700px) {
-  .identity { padding-inline: 34px; }
-  /* .logo is positioned against .heroImage (full width, no padding of its
-     own), so its left offset needs to track .identity's padding-inline by
-     hand at each breakpoint to stay aligned with the content below it. */
-  .logo { left: 34px; }
-  .quickActions { padding-inline: 34px; }
-  .essentials, .social, .aboutDark, .treatments, .gallery, .location { padding-inline: 34px; }
-  .essentialGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 30px; }
-  /* Two columns once there's real room per card — this is the same width
-     the single-column cards' own comment promises the grid back at. */
-  .socialGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  /* Enough width for the full address on one line. */
-  .address span { display: inline; }
-  .address span::before { content: " • "; }
-  .mapCard iframe { height: 320px; }
-}
-
-@media (min-width: 961px) {
-  .page { padding-block: 28px; }
-  .shell { min-height: calc(100svh - 56px); border-radius: 2px; }
-}
+/* Single-layout change: the desktop-composition media queries that used to
+   live here (min-width: 700px / 961px / 1024px — widening grids, enlarging
+   the hero, expanding .shell, moving .logo's offset) were removed outright.
+   Individual PiriCard pages now have exactly one layout, the mobile one,
+   at every viewport size (see app/profile-layout.css). Only mobile-side
+   @media (max-width) refinements remain below, unchanged. */
 
 @media (max-width: 390px) {
   .platformBar { padding-inline: 16px; }
@@ -411,65 +405,6 @@
   .logo { left: 16px; width: 80px; height: 80px; }
   .identityTopline { min-height: 40px; padding-left: 93px; }
   .identity h1 { font-size: 1.6rem; }
-}
-
-@media (min-width: 1024px) {
-  .shell { width: min(calc(100% - 64px), 1180px); }
-  .heroImageFrame { max-height: 440px; aspect-ratio: 16 / 7; }
-  .identity,
-  .quickActions,
-  .essentials,
-  .social,
-  .aboutDark,
-  .treatments,
-  .gallery,
-  .location,
-  .closing,
-  .footer { padding-left: 48px; padding-right: 48px; }
-  .logo { left: 48px; }
-  .identity { padding-bottom: 28px; }
-  .quickActions { grid-template-columns: repeat(4,minmax(0,1fr)); padding-bottom: 42px; }
-  .essentials { padding-block: 36px; }
-  .social { padding-block: 44px 38px; }
-
-  .aboutDark {
-    display: grid;
-    grid-template-columns: minmax(0,1.15fr) minmax(320px,.85fr);
-    column-gap: 56px;
-    padding-top: 48px;
-    padding-bottom: 48px;
-  }
-  .aboutDark > .kicker,
-  .aboutQuote,
-  .aboutCopy,
-  .pillars { grid-column: 1; }
-  .diagnosisCard { grid-column: 2; grid-row: 1 / 6; align-self: center; }
-  .aboutQuote { font-size: 28px; }
-  .aboutCopy { max-width: 58ch; }
-
-  .treatments,
-  .gallery { padding-top: 38px; padding-bottom: 20px; }
-  .treatmentGroups { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); align-items: start; }
-  .page :global(.profile-gallery-grid) { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; }
-  .page :global(.profile-gallery-image[data-aspect="wide"]),
-  .page :global(.profile-gallery-placeholder[data-aspect="wide"]) { grid-column: span 2; }
-
-  .location {
-    display: grid;
-    grid-template-columns: minmax(260px,.72fr) minmax(0,1.28fr);
-    grid-template-rows: auto auto 1fr;
-    align-items: start;
-    column-gap: 48px;
-    padding-top: 46px;
-    padding-bottom: 34px;
-  }
-  .location > .kicker,
-  .locationHeading,
-  .locationAddress { grid-column: 1; }
-  .mapCard { grid-column: 2; grid-row: 1 / 4; }
-  .mapCard iframe { height: 330px; }
-  .closing { margin-top: 34px; padding-top: 38px; padding-bottom: 36px; }
-  .footer { padding-top: 30px; padding-bottom: 32px; }
 }
 
 @media (hover: hover) and (pointer: fine) {

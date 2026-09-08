@@ -205,13 +205,22 @@
    entrance is this animation; there's no matching exit animation since the
    bar unmounts instantly on scrolling back to the top, same as OFT's own
    sticky bar (oftBarIn). */
-.stickyBar { position: fixed; z-index: 40; inset: auto 0 0; padding: 10px 12px; background: linear-gradient(to top, rgba(222,212,196,.98), rgba(222,212,196,.72)); animation: bnbBarIn 220ms ease; }
+/* Single-layout change: left/right/width replace the old edge-to-edge
+   `inset: auto 0 0` so this bar matches the card's own width/centering
+   (app/profile-layout.css --profile-card-max-width) instead of the real
+   browser viewport — mathematically identical to the old rule at any width
+   <= that cap, i.e. unchanged on every viewport this was ever "mobile" on. */
+.stickyBar { position: fixed; z-index: 40; left: 50%; right: auto; bottom: 0; top: auto; width: min(100%, var(--profile-card-max-width)); transform: translateX(-50%); padding: 10px 12px; background: linear-gradient(to top, rgba(222,212,196,.98), rgba(222,212,196,.72)); animation: bnbBarIn 220ms ease; }
 .stickyBar > div { width: min(100%,520px); margin-inline: auto; display: flex; gap: 8px; }
 .stickyBar > div > :is(a, button) { min-width: 0; min-height: var(--profile-action-button-height); flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 11px; padding: 0 14px; background: var(--bnb-white); color: var(--bnb-ink); box-shadow: 0 0 0 1px rgba(25,20,17,.14), 0 8px 20px -12px rgba(25,20,17,.5); font-size: 14.5px; font-weight: 700; text-align: center; }
 .stickyBar > div > :is(a, button) svg { width: 19px; height: 19px; flex: none; stroke-width: 2; }
 .stickyBar .stickyQr { background: var(--bnb-white); color: var(--bnb-ink); }
 .stickyBar .stickyPhone { background: var(--bnb-ink); color: #f8f2e7; box-shadow: 0 8px 20px -10px rgba(25,20,17,.7); }
-.stickyWhatsapp { position: fixed; z-index: 41; right: 16px; width: 52px; height: 52px; display: grid; place-items: center; border-radius: 50%; background: #128c7e; color: #fff; box-shadow: 0 12px 28px -10px rgba(18,140,126,.8); animation: bnbBarIn 220ms ease; }
+/* Same idea as .stickyBar above: on a viewport narrower than the card's own
+   cap this resolves to exactly 16px (unchanged); once the viewport grows
+   past the card, it tracks the card's actual right edge instead of the
+   browser window's. */
+.stickyWhatsapp { position: fixed; z-index: 41; right: max(16px, calc((100vw - var(--profile-card-max-width)) / 2 + 16px)); width: 52px; height: 52px; display: grid; place-items: center; border-radius: 50%; background: #128c7e; color: #fff; box-shadow: 0 12px 28px -10px rgba(18,140,126,.8); animation: bnbBarIn 220ms ease; }
 .stickyWhatsapp svg { width: 23px; height: 23px; stroke-width: 2.2; }
 
 @keyframes bnbBarIn {
@@ -238,22 +247,26 @@
   .stickyWhatsapp:hover { background: #0d7a6e; transform: translateY(-1px); }
 }
 
-@media (max-width: 760px) {
-  .quickActions, .contacts > div { grid-template-columns: repeat(2,minmax(0,1fr)); }
-  .essentialGrid { grid-template-columns: repeat(2,minmax(0,1fr)); }
-  .reviewGrid { grid-template-columns: 1fr; gap: 28px; }
-}
+/* Single-layout change: these two used to be `@media (max-width: 760px)`
+   and `@media (max-width: 620px)` — this file's grids are declared
+   desktop-shaped at the unqualified/base level (4/3/2-column), narrowed
+   down to the mobile shape only below those widths. With no separate
+   desktop composition anymore, that narrowing applies unconditionally
+   instead — same declarations, same relative order (so the more-specific
+   620px values still win over 760px's where both touch the same property,
+   exactly reproducing today's <=390px appearance at every width now). */
+.quickActions, .contacts > div { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.essentialGrid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.reviewGrid { grid-template-columns: 1fr; gap: 28px; }
 
-@media (max-width: 620px) {
-  .platformBar { padding-inline: 14px; }
-  .saveContact span { display: none; }
-  .saveContact { width: 36px; padding: 0; justify-content: center; }
-  .identity, .quickActions, .essentials, .social, .about, .menu, .gallery, .reviews, .visit, .contacts, .footer { padding-left: 20px; padding-right: 20px; }
-  .quickActions { grid-template-columns: repeat(2,minmax(0,1fr)); }
-  .essentialGrid, .menuColumns, .visit { grid-template-columns: 1fr; }
-  .essentialGrid > div { padding-inline: 2px; }
-  .contacts > div { grid-template-columns: repeat(2,minmax(0,1fr)); }
-}
+.platformBar { padding-inline: 14px; }
+.saveContact span { display: none; }
+.saveContact { width: 36px; padding: 0; justify-content: center; }
+.identity, .quickActions, .essentials, .social, .about, .menu, .gallery, .reviews, .visit, .contacts, .footer { padding-left: 20px; padding-right: 20px; }
+.quickActions { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.essentialGrid, .menuColumns, .visit { grid-template-columns: 1fr; }
+.essentialGrid > div { padding-inline: 2px; }
+.contacts > div { grid-template-columns: repeat(2,minmax(0,1fr)); }
 
 @media (max-width: 370px) {
   .identity, .quickActions, .essentials, .social, .about, .menu, .gallery, .reviews, .visit, .contacts, .footer { padding-left: 16px; padding-right: 16px; }
@@ -265,33 +278,6 @@
   .reviewScore > div > strong { font-size: 46px; }
   .stickyBar { padding-inline: 8px; }
   .stickyBar > div > :is(a, button) { font-size: 13px; }
-}
-
-@media (min-width: 1024px) {
-  .shell { width: min(calc(100% - 64px), 1180px); }
-  .heroImage { max-height: 460px; }
-  .identity,
-  .quickActions,
-  .essentials,
-  .social,
-  .about,
-  .menu,
-  .reviews,
-  .visit,
-  .contacts,
-  .footer { padding-left: 48px; padding-right: 48px; }
-  .identity { padding-bottom: 30px; }
-  .quickActions { padding-bottom: 32px; }
-  .essentials { padding-block: 32px; }
-  .social { padding-block: 28px 30px; }
-  .about,
-  .menu,
-  .reviews,
-  .visit,
-  .contacts { padding-top: 44px; padding-bottom: 44px; }
-  .reviewGrid,
-  .visit { gap: 44px; }
-  .mapCard iframe { height: 260px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

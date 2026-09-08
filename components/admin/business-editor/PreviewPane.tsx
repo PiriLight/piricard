@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import type { Business } from "@/lib/businesses";
 import { BusinessProfile } from "@/components/BusinessProfile";
 
@@ -9,25 +8,23 @@ import { BusinessProfile } from "@/components/BusinessProfile";
  * no fork, no second rendering system. `business` here is always the
  * in-memory draft, never fetched again, so edits show up immediately without
  * saving and never touch Supabase.
+ *
+ * Single-layout change: individual PiriCard pages now have exactly one
+ * visual layout (the mobile one) at every viewport size — see
+ * app/profile-layout.css. There is no longer a distinct "desktop" version
+ * of a card to preview, so the old Mobile/Desktop device-toggle here is
+ * gone; there is just one Preview, and it renders at the same canonical
+ * width the public page itself now uses everywhere (see
+ * .admin-preview-frame in app/admin/admin.css).
  */
 export default function PreviewPane({ business }: { business: Business }) {
-  const [device, setDevice] = useState<"mobile" | "desktop">("desktop");
-
   return (
     <div className="admin-preview-pane">
       <div className="admin-preview-toolbar">
         <span className="admin-preview-label">Pré-visualização</span>
-        <div className="admin-preview-device-toggle" role="group" aria-label="Largura da pré-visualização">
-          <button type="button" className={device === "mobile" ? "is-active" : ""} onClick={() => setDevice("mobile")}>
-            Telemóvel
-          </button>
-          <button type="button" className={device === "desktop" ? "is-active" : ""} onClick={() => setDevice("desktop")}>
-            Desktop
-          </button>
-        </div>
       </div>
       <div className="admin-preview-viewport">
-        <div className={`admin-preview-frame admin-preview-frame-${device}`}>
+        <div className="admin-preview-frame">
           <BusinessProfile business={business} />
         </div>
       </div>

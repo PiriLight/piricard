@@ -7,6 +7,21 @@
   --profile-action-height: calc(var(--profile-action-button-height) + var(--profile-action-padding) * 2 + var(--profile-action-extra-space));
   --profile-bottom-reserve: 0px;
   --profile-floating-clearance: 0px;
+  /* Single-layout change: individual PiriCard pages no longer have a
+     separate desktop composition — the mobile card is now the ONLY layout,
+     at every viewport size. This is the one shared source of truth for
+     "how wide is the card"; every bespoke profile's own CSS (`.shell`,
+     `.stickyBar`/`.whatsappFab`/`.stickyWhatsapp`, etc.) reads this same
+     variable instead of hardcoding its own number, so a future bespoke
+     layout inherits the rule for free just by living under `.profile-layout`.
+     390px was already this codebase's own mobile reference width (see the
+     Admin preview's mobile frame); 430px is the same family of value —
+     just wide enough to cover the largest phones (e.g. iPhone Pro Max,
+     ~430px CSS px) without ever visibly kicking in below that, so nothing
+     changes on any viewport this project actually treats as "mobile"
+     today (verified: min(100%, 430px) at a 390px viewport is 390px,
+     identical to the previous un-capped width). */
+  --profile-card-max-width: 430px;
 }
 
 @media (max-width: 960px) {
@@ -21,7 +36,33 @@
   --profile-floating-clearance: 66px; /* 52px button + 14px gap */
 }
 
+/* The outer canvas: fills the real viewport at every size (so there's
+   somewhere for a future business-specific background to eventually live —
+   see DesktopCardShell in the phase brief) and simply centers whatever
+   width-capped card sits inside it. On a viewport already <= the card's own
+   max-width this has zero visible effect: a flex row centering a
+   full-width-100% child looks identical to that child alone. */
+.profile-layout {
+  display: flex;
+  justify-content: center;
+  background: var(--profile-desktop-canvas-bg, #eef1f8);
+}
+
 .profile-layout .profile-layout-shell { padding-bottom: 0; }
+
+/* The card itself. Every bespoke/default profile already renders this
+   exact class on its outermost content wrapper (see BusinessProfile.tsx
+   and every Profile.tsx) — capping ITS width here, once, is what makes
+   "no desktop composition" apply automatically to every existing and
+   future business, with zero per-file/per-slug work. Each profile's own
+   `.shell` module-CSS class may still declare its own width (some go up to
+   min(100%, 960px)) — that no longer matters once the actual viewport
+   available to it is never wider than this, since 100% of a narrower
+   parent is still the narrower value. */
+.profile-layout-shell {
+  width: 100%;
+  max-width: var(--profile-card-max-width);
+}
 
 /* Reserve fixed-control clearance inside the branded footer, not after it.
    The safe-area inset is counted once, even when there is no visible bar. */
@@ -41,71 +82,56 @@
   bottom: calc(var(--profile-action-height) + env(safe-area-inset-bottom, 0px) + 10px);
 }
 
-/* Default dock: mobile-only; its existing observers still hide it near
-   the main actions and footer. */
-@media (max-width: 700px) {
-  .profile-layout:has(.profile-sticky-dock) {
-    --profile-bottom-reserve: var(--profile-action-height);
-  }
-
-  .profile-sticky-dock {
-    position: fixed;
-    z-index: 60;
-    inset: auto 0 0;
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    padding: 8px 12px;
-    background: var(--profile-surface);
-    box-shadow: 0 -1px 0 var(--profile-border);
-  }
-
-  .profile-sticky-dock a {
-    min-width: 0;
-    min-height: var(--profile-action-button-height);
-    flex: 1;
-    max-width: 199px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    border: 1px solid var(--profile-border);
-    border-radius: 6px;
-    background: var(--profile-surface);
-    color: var(--profile-primary);
-    font-size: 14px;
-    font-weight: 700;
-    text-decoration: none;
-  }
-
-  .profile-sticky-dock a.is-primary {
-    background: var(--profile-primary);
-    color: #fff;
-  }
+/* Default layout's sticky dock (StickyProfileActions) — previously gated to
+   `max-width: 700px` (mobile-only; nothing replaced it above that, and the
+   old `min-width: 1024px` block below explicitly excluded it via
+   `:not(.profile-sticky-dock)`). Now unconditional: `position: fixed` stays
+   relative to the real browser viewport at every size (unchanged — nothing
+   here re-scopes its containing block, which matters: the public page has
+   no inner scroll container, so doing that would break "stays visible while
+   scrolling" the same way it would have in the Admin preview investigation).
+   Only its horizontal extent changes, from edge-to-edge-of-viewport to
+   edge-to-edge-of-card. */
+.profile-sticky-dock {
+  position: fixed;
+  z-index: 60;
+  left: 50%;
+  right: auto;
+  bottom: 0;
+  top: auto;
+  width: min(100%, var(--profile-card-max-width));
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--profile-surface);
+  box-shadow: 0 -1px 0 var(--profile-border);
 }
 
-/* Bespoke profiles keep their persistent actions on desktop, but present them
-   as a compact floating dock instead of a full-monitor mobile bar. */
-@media (min-width: 1024px) {
-  .profile-layout {
-    --profile-desktop-action-width: min(520px, calc(100vw - 48px));
-    --profile-desktop-action-half-width: 260px;
-    --profile-desktop-action-inline-inset: 16px;
-  }
+.profile-layout:has(.profile-sticky-dock) {
+  --profile-bottom-reserve: var(--profile-action-height);
+}
 
-  .profile-layout .profile-action-bar:not(.profile-sticky-dock) {
-    right: 0;
-    bottom: 24px;
-    left: 0;
-    width: var(--profile-desktop-action-width);
-    margin-inline: auto;
-    border-radius: 14px;
-    overflow: hidden;
-  }
+.profile-sticky-dock a {
+  min-width: 0;
+  min-height: var(--profile-action-button-height);
+  flex: 1;
+  max-width: 199px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--profile-border);
+  border-radius: 6px;
+  background: var(--profile-surface);
+  color: var(--profile-primary);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
 
-  .profile-layout .profile-floating-action {
-    right: calc(50% - var(--profile-desktop-action-half-width) + var(--profile-desktop-action-inline-inset));
-    bottom: calc(var(--profile-action-height) + env(safe-area-inset-bottom,0px) + 44px);
-    left: auto;
-  }
+.profile-sticky-dock a.is-primary {
+  background: var(--profile-primary);
+  color: #fff;
 }

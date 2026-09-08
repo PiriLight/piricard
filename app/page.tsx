@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { BusinessDirectory } from "@/components/BusinessDirectory";
 import { PiriCardBrandMark } from "@/components/PiriCardBrandMark";
 import { PlatformFooter } from "@/components/PlatformFooter";
 import { getPiriCardShowcaseCards } from "@/lib/piricard-cards";
 import { getPublicDirectoryBusinesses } from "@/lib/public/business";
+import "./directory.css";
 
 export const metadata: Metadata = {
   title: { absolute: "PiriCard — Negócios a um toque" },
@@ -21,7 +23,7 @@ export default async function HomePage() {
   const businesses = await getPublicDirectoryBusinesses();
   const showcaseCards = getPiriCardShowcaseCards();
   return (
-    <main className="directory-page">
+    <main className="directory-page directory-home">
       <header className="platform-header">
         <Link className="platform-wordmark" href="/" aria-label="PiriCard — página inicial">
           <PiriCardBrandMark wordmark={<span>Piri<span>Card</span></span>} />
@@ -41,7 +43,7 @@ export default async function HomePage() {
           </div>
           <p className="owner-cta-microline">Primeiro ano da plataforma incluído.</p>
         </div>
-        <Link href="/piricard">Ver PiriCard e preços</Link>
+        <Link href="/piricard">Ver PiriCard e preços <ArrowRight aria-hidden="true" size={18} /></Link>
       </aside>
       <PlatformFooter />
     </main>

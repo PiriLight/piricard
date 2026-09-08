@@ -41,8 +41,8 @@ export function BusinessDirectory({ businesses, showcaseCards }: BusinessDirecto
         <h1 id="directory-heading">Negócios à distância de um toque.</h1>
         <p>Encontre negócios locais de confiança e aceda rapidamente aos contactos de que precisa.</p>
         <div className="hero-actions">
-          <a className="hero-cta-primary" href="#business-list-heading">Explorar negócios</a>
-          <a className="hero-cta-secondary" href="#piricard-explainer-heading">O que é um PiriCard?</a>
+          <a className="hero-cta-primary" href="#business-list-heading">Explorar negócios <ArrowRight aria-hidden="true" size={18} /></a>
+          <a className="hero-cta-secondary" href="#piricard-explainer-heading">O que é um PiriCard? <ArrowRight aria-hidden="true" size={16} /></a>
         </div>
       </div>
 

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { InteractivePiriCard } from "@/components/InteractivePiriCard";
 import { PiriCardBrandMark } from "@/components/PiriCardBrandMark";
 import { PlatformFooter } from "@/components/PlatformFooter";
@@ -88,8 +89,8 @@ export function PiriCardCommercialPage() {
           <p className="pc-hero-sub">Um cartão NFC personalizado que liga os teus clientes à informação essencial do teu negócio.</p>
           <p className="pc-hero-sub-line">NFC, perfil digital e QR Code numa única solução.</p>
           <div className="pc-hero-actions">
-            <a className="pc-hero-cta-primary" href={CONTACT_HREF} target="_blank" rel="noopener noreferrer">Quero o meu PiriCard</a>
-            <a className="pc-hero-cta-secondary" href="#pc-includes">Ver o que inclui</a>
+            <a className="pc-hero-cta-primary" href={CONTACT_HREF} target="_blank" rel="noopener noreferrer">Quero o meu PiriCard <ArrowRight aria-hidden="true" size={18} /></a>
+            <a className="pc-hero-cta-secondary" href="#pc-includes">Ver o que inclui <ArrowRight aria-hidden="true" size={16} /></a>
           </div>
           <div className="pc-hero-card">
             <InteractivePiriCard />
@@ -106,7 +107,7 @@ export function PiriCardCommercialPage() {
               <span>Pagamento inicial.</span>
               <span>Primeiro ano da plataforma incluído.</span>
             </div>
-            <a className="pc-price-cta" href={CONTACT_HREF} target="_blank" rel="noopener noreferrer">Quero o meu PiriCard — 100 €</a>
+            <a className="pc-price-cta" href={CONTACT_HREF} target="_blank" rel="noopener noreferrer">Quero o meu PiriCard — 100 € <ArrowRight aria-hidden="true" size={18} /></a>
           </div>
         </section>
 
@@ -204,7 +205,7 @@ export function PiriCardCommercialPage() {
             <p className="pc-final-price-value">100 €</p>
             <p className="pc-final-price-note">Primeiro ano incluído.</p>
           </div>
-          <a className="pc-final-cta-link" href={CONTACT_HREF} target="_blank" rel="noopener noreferrer">Quero o meu PiriCard</a>
+          <a className="pc-final-cta-link" href={CONTACT_HREF} target="_blank" rel="noopener noreferrer">Quero o meu PiriCard <ArrowRight aria-hidden="true" size={18} /></a>
         </section>
       </div>
 

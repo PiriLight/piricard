@@ -108,3 +108,354 @@
 @media (prefers-reduced-motion: reduce) {
   .pc-hero-card { animation: none; }
 }
+
+/* 2026 premium visual refinement. Kept as a later, route-specific layer so
+   the approved markup and every interaction remain unchanged. */
+.piricard-page {
+  --pc-surface: #08131f;
+  --pc-surface-raised: #0b1a29;
+  --pc-line: rgba(105, 183, 232, .2);
+  --pc-line-strong: rgba(93, 212, 255, .48);
+  --pc-text: #f5f8fc;
+  --pc-muted: #99aabd;
+  --pc-blue: #5dd4ff;
+  --pc-blue-strong: #2c8cff;
+  --pc-radius: 1rem;
+  --pc-shadow: 0 28px 75px rgba(0, 0, 0, .4);
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 78% 7%, rgba(31, 135, 255, .15), transparent 27rem),
+    radial-gradient(circle at 12% 40%, rgba(35, 190, 255, .055), transparent 28rem),
+    linear-gradient(145deg, #02060a 0%, #06101a 50%, #03080e 100%);
+}
+.piricard-page::before {
+  opacity: .11;
+  background-image: linear-gradient(rgba(93, 212, 255, .12) 1px, transparent 1px), linear-gradient(90deg, rgba(93, 212, 255, .1) 1px, transparent 1px);
+  background-size: 90px 90px;
+  mask-image: radial-gradient(ellipse 72% 30% at 78% 8%, #000, transparent 76%);
+}
+.piricard-page::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  top: 5rem;
+  right: -17rem;
+  width: 62rem;
+  height: 34rem;
+  border: 1px solid rgba(93, 212, 255, .16);
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: .55;
+  transform: rotate(-18deg);
+  box-shadow: 0 0 60px rgba(44, 140, 255, .07), inset 0 0 50px rgba(44, 140, 255, .035);
+}
+.piricard-page .platform-header,
+.piricard-page .platform-footer,
+.piricard-page-inner { width: min(calc(100% - 3rem), 74rem); }
+.piricard-page .platform-header { min-height: 5.35rem; border-color: rgba(105, 183, 232, .18); }
+.piricard-page .platform-header::after,
+.piricard-page .platform-footer::before {
+  content: "";
+  position: absolute;
+  inset: auto 0 -1px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(93, 212, 255, .42), transparent);
+  opacity: .45;
+}
+.piricard-page .platform-wordmark { color: var(--pc-text); font-size: 1.3rem; }
+.piricard-page .platform-wordmark .piricard-mark-icon { filter: drop-shadow(0 0 13px rgba(93, 212, 255, .46)); }
+.piricard-page .platform-header > a:last-child { color: #dbe8f5; font-size: .68rem; letter-spacing: .18em; }
+.piricard-page .eyebrow { color: var(--pc-blue) !important; font-size: .69rem !important; font-weight: 760; letter-spacing: .25em; }
+
+.piricard-page .pc-section {
+  padding-block: clamp(3.5rem, 7vw, 6rem);
+  border-bottom: 1px solid transparent;
+  border-image: linear-gradient(90deg, transparent, rgba(93, 212, 255, .28), transparent) 1;
+}
+.piricard-page .pc-section h2 { color: var(--pc-text); font-size: clamp(2rem, 4vw, 3.15rem); font-weight: 620; line-height: 1.03; letter-spacing: -.047em; }
+.piricard-page .pc-section-intro { max-width: 39rem; color: var(--pc-muted); font-size: .98rem; line-height: 1.62; }
+
+.piricard-page .pc-hero {
+  min-height: 41rem;
+  position: relative;
+  padding: clamp(4rem, 7vw, 6.5rem) 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(22rem, .85fr);
+  grid-template-rows: repeat(5, auto) 1fr;
+  align-items: center;
+  column-gap: clamp(3rem, 7vw, 7rem);
+  border-bottom: 1px solid transparent;
+  border-image: linear-gradient(90deg, transparent, rgba(93, 212, 255, .36), transparent) 1;
+  text-align: left;
+}
+.piricard-page .pc-hero::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 8% -8% 8% 42%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(29, 139, 255, .18), rgba(42, 199, 255, .04) 42%, transparent 69%);
+  filter: blur(16px);
+  pointer-events: none;
+}
+.piricard-page .pc-hero > :not(.pc-hero-card) { grid-column: 1; }
+.piricard-page .pc-hero .eyebrow { align-self: end; margin-bottom: 1rem !important; }
+.piricard-page .pc-hero h1 {
+  max-width: 35rem;
+  margin: 0;
+  color: var(--pc-text);
+  font-size: clamp(3.4rem, 6vw, 5.5rem);
+  font-weight: 670;
+  line-height: .94;
+  letter-spacing: -.065em;
+  text-shadow: 0 12px 36px rgba(0, 0, 0, .42);
+}
+.piricard-page .pc-hero h1::after {
+  content: "";
+  width: .11em;
+  height: .11em;
+  margin-left: .07em;
+  display: inline-block;
+  border-radius: 50%;
+  background: var(--pc-blue);
+  box-shadow: 0 0 18px rgba(93, 212, 255, .7);
+}
+.piricard-page .pc-hero-sub { max-width: 35rem; margin: 1.3rem 0 0; color: #adbbca; font-size: clamp(1rem, 1.55vw, 1.12rem); line-height: 1.57; }
+.piricard-page .pc-hero-sub-line { max-width: 34rem; margin: .45rem 0 0; color: #7f91a4; font-size: .88rem; }
+.piricard-page .pc-hero-actions { margin-top: 1.8rem; justify-content: flex-start; gap: .75rem; }
+.piricard-page .pc-hero-cta-primary,
+.piricard-page .pc-hero-cta-secondary,
+.piricard-page .pc-price-cta,
+.piricard-page .pc-final-cta-link {
+  min-height: 3.3rem;
+  border-radius: .6rem;
+  padding: 0 1.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .72rem;
+  font-size: .88rem;
+  font-weight: 750;
+  text-decoration: none;
+  transition: transform var(--platform-speed), border-color var(--platform-speed), color var(--platform-speed), background var(--platform-speed), box-shadow var(--platform-speed);
+}
+.piricard-page .pc-hero-cta-primary,
+.piricard-page .pc-price-cta,
+.piricard-page .pc-final-cta-link {
+  border: 1px solid rgba(211, 244, 255, .52);
+  color: #03111a;
+  background: linear-gradient(180deg, #79deff, #55c8f3);
+  box-shadow: 0 15px 32px -17px rgba(93, 212, 255, .82), inset 0 1px rgba(255, 255, 255, .52);
+}
+.piricard-page .pc-hero-cta-secondary { border: 1px solid var(--pc-line); color: #c2d0de; background: rgba(7, 18, 29, .62); }
+.piricard-page .pc-hero-cta-primary:hover,
+.piricard-page .pc-price-cta:hover,
+.piricard-page .pc-final-cta-link:hover { transform: translateY(-2px); box-shadow: 0 20px 40px -17px rgba(93, 212, 255, .78), inset 0 1px rgba(255, 255, 255, .65); }
+.piricard-page .pc-hero-cta-secondary:hover { border-color: var(--pc-line-strong); color: var(--pc-blue); background: rgba(11, 30, 47, .86); }
+.piricard-page .pc-hero-cta-primary svg,
+.piricard-page .pc-hero-cta-secondary svg,
+.piricard-page .pc-price-cta svg,
+.piricard-page .pc-final-cta-link svg { transition: transform var(--platform-speed); }
+.piricard-page .pc-hero-cta-primary:hover svg,
+.piricard-page .pc-hero-cta-secondary:hover svg,
+.piricard-page .pc-price-cta:hover svg,
+.piricard-page .pc-final-cta-link:hover svg { transform: translateX(4px); }
+.piricard-page .pc-hero-cta-primary:active,
+.piricard-page .pc-price-cta:active,
+.piricard-page .pc-final-cta-link:active { transform: scale(.985); }
+.piricard-page .pc-hero-card { grid-column: 2; grid-row: 1 / -1; min-height: 34rem; margin: 0; }
+.piricard-page .piricard-demo-float { min-height: 31rem; }
+.piricard-page .piricard-demo-scene { width: min(100%, 18rem); }
+.piricard-page .piricard-demo-face {
+  border-color: rgba(93, 212, 255, .58);
+  border-radius: 1rem;
+  box-shadow: 0 2.2rem 4.5rem -1.4rem rgba(0, 0, 0, .92), 0 0 3rem -1rem rgba(44, 140, 255, .5), inset 0 1px rgba(255, 255, 255, .11);
+}
+.piricard-page .piricard-demo-controls button { border-color: rgba(93, 212, 255, .3); color: var(--pc-blue); background: rgba(3, 13, 22, .82); }
+
+.piricard-page .pc-price-card {
+  margin-top: 1.6rem;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(74, 170, 233, .48);
+  border-radius: var(--pc-radius);
+  padding: clamp(1.6rem, 4vw, 2.5rem);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .3rem 3rem;
+  background: radial-gradient(circle at 84% 28%, rgba(44, 140, 255, .2), transparent 20rem), linear-gradient(130deg, rgba(11, 34, 56, .98), rgba(5, 14, 23, .95) 60%);
+  box-shadow: var(--pc-shadow), inset 0 1px rgba(255, 255, 255, .035);
+  text-align: left;
+}
+.piricard-page .pc-price-card::after {
+  content: "";
+  position: absolute;
+  right: -8rem;
+  bottom: -11rem;
+  width: 25rem;
+  height: 25rem;
+  border: 1px solid rgba(93, 212, 255, .22);
+  border-radius: 42%;
+  pointer-events: none;
+  transform: rotate(34deg);
+}
+.piricard-page .pc-price-card > * { position: relative; z-index: 1; }
+.piricard-page .pc-price-label { grid-column: 1; margin: 0; color: var(--pc-blue); font-size: .69rem; font-weight: 760; letter-spacing: .22em; }
+.piricard-page .pc-price-value { grid-column: 1; margin: .45rem 0 0; color: var(--pc-text); font-size: clamp(3.4rem, 7vw, 5.25rem); letter-spacing: -.055em; }
+.piricard-page .pc-price-regular { grid-column: 1; margin-top: .55rem; color: #8799ab; font-size: .8rem; }
+.piricard-page .pc-price-notes { grid-column: 2; grid-row: 1 / 4; margin: 0; color: #a9b7c6; font-size: .86rem; }
+.piricard-page .pc-price-notes span::before { content: ""; width: .35rem; height: .35rem; margin-right: .55rem; display: inline-block; border-radius: 50%; background: var(--pc-blue-strong); box-shadow: 0 0 10px rgba(44, 140, 255, .72); }
+.piricard-page .pc-price-cta { grid-column: 2; margin-top: 1.2rem; min-width: 18rem; }
+
+.piricard-page .pc-includes-list { margin-top: 1.65rem; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
+.piricard-page .pc-includes-list li {
+  min-height: 3.65rem;
+  border: 1px solid rgba(105, 183, 232, .16);
+  border-radius: .68rem;
+  padding: .9rem 1rem;
+  align-items: center;
+  color: #c9d5e1;
+  background: linear-gradient(145deg, rgba(10, 25, 39, .84), rgba(5, 13, 22, .72));
+  font-size: .9rem;
+}
+.piricard-page .pc-includes-list li:first-child { border-top: 1px solid rgba(105, 183, 232, .16); }
+.piricard-page .pc-includes-list li::before { margin-top: 0; background: var(--pc-blue-strong); }
+
+.piricard-page .pc-how-list { margin-top: 1.65rem; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .8rem; }
+.piricard-page .pc-how-list li {
+  min-height: 10rem;
+  border: 1px solid rgba(105, 183, 232, .17);
+  border-radius: .75rem;
+  padding: 1.2rem;
+  flex-direction: column;
+  gap: .75rem;
+  background: linear-gradient(155deg, rgba(10, 26, 41, .85), rgba(5, 14, 23, .75));
+}
+.piricard-page .pc-how-number { border-color: rgba(93, 212, 255, .58); color: var(--pc-blue); background: radial-gradient(circle, rgba(44, 140, 255, .12), rgba(5, 13, 22, .85)); }
+.piricard-page .pc-how-copy h3 { margin: 0; color: var(--pc-text); }
+.piricard-page .pc-how-copy p { color: var(--pc-muted); font-size: .86rem; }
+
+.piricard-page .pc-qr-examples { gap: .55rem; }
+.piricard-page .pc-qr-examples li { border-color: rgba(105, 183, 232, .22); border-radius: .5rem; padding: .48rem .85rem; color: #bac8d6; background: rgba(8, 21, 33, .62); font-size: .8rem; }
+.piricard-page .pc-qr-examples li:hover { border-color: rgba(93, 212, 255, .45); color: #dff7ff; background: rgba(16, 47, 70, .54); }
+
+.piricard-page .pc-renewal-card {
+  margin-top: 1.6rem;
+  border-color: rgba(105, 183, 232, .22);
+  border-radius: var(--pc-radius);
+  padding: clamp(1.5rem, 4vw, 2.35rem);
+  display: grid;
+  grid-template-columns: minmax(15rem, .72fr) minmax(0, 1.28fr);
+  gap: .75rem clamp(2rem, 5vw, 4.5rem);
+  background: linear-gradient(145deg, rgba(10, 28, 45, .88), rgba(4, 13, 22, .8));
+}
+.piricard-page .pc-renewal-price { grid-column: 1; }
+.piricard-page .pc-renewal-value { color: var(--pc-blue); font-size: 2rem; letter-spacing: -.035em; }
+.piricard-page .pc-renewal-card > p { grid-column: 1; margin-top: .4rem; color: var(--pc-muted); font-size: .91rem; }
+.piricard-page .pc-renewal-list { grid-column: 2; grid-row: 1 / 3; margin: 0; align-content: center; gap: .68rem 1.2rem; color: #c3d0dd; font-size: .82rem; }
+.piricard-page .pc-renewal-list li { align-items: flex-start; }
+.piricard-page .pc-renewal-list li::before { margin-top: .36rem; background: var(--pc-blue-strong); box-shadow: 0 0 9px rgba(44, 140, 255, .62); }
+
+.piricard-page .pc-manage-grid { margin-top: 1.65rem; gap: .85rem; }
+.piricard-page .pc-manage-card { border-color: rgba(105, 183, 232, .2); border-radius: .78rem; background: linear-gradient(150deg, rgba(10, 26, 41, .86), rgba(5, 14, 23, .72)); }
+.piricard-page .pc-manage-card h3 { font-size: .7rem; letter-spacing: .18em; }
+.piricard-page .pc-manage-card.is-allowed h3 { color: var(--pc-blue); }
+.piricard-page .pc-manage-card.is-locked h3 { color: #8798aa; }
+.piricard-page .pc-manage-card ul { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem 1rem; color: #b8c6d4; font-size: .84rem; }
+.piricard-page .pc-manage-card li { display: flex; align-items: flex-start; gap: .5rem; }
+.piricard-page .pc-manage-card li::before { content: ""; width: .28rem; height: .28rem; margin-top: .4rem; flex: none; border-radius: 50%; background: currentColor; opacity: .55; }
+.piricard-page .pc-manage-concept { margin-top: 1.15rem; color: #dce7f1; font-size: .92rem; }
+
+.piricard-page .pc-custom-note { padding-block: clamp(2.2rem, 4vw, 3rem); }
+.piricard-page .pc-custom-note-box { border-color: rgba(105, 183, 232, .17); border-radius: .72rem; color: #94a5b7; background: rgba(7, 17, 27, .68); font-size: .84rem; }
+.piricard-page .pc-custom-note-box p { margin: 0; }
+.piricard-page .pc-custom-note-box p + p { margin-top: .55rem; }
+.piricard-page .pc-custom-note-box strong { color: #d8e4ef; }
+
+.piricard-page .pc-faq-list { margin-top: 1.65rem; gap: .55rem; }
+.piricard-page .pc-faq-list details { border-color: rgba(105, 183, 232, .18); border-radius: .68rem; padding: 1rem 1.2rem; background: rgba(7, 18, 29, .66); transition: border-color var(--platform-speed), background var(--platform-speed); }
+.piricard-page .pc-faq-list details:hover,
+.piricard-page .pc-faq-list details[open] { border-color: rgba(93, 212, 255, .4); background: rgba(10, 27, 42, .84); }
+.piricard-page .pc-faq-list summary { color: #e1eaf3; font-size: .94rem; }
+.piricard-page .pc-faq-list summary::after { color: var(--pc-blue); }
+.piricard-page .pc-faq-list p { max-width: 52rem; color: var(--pc-muted); font-size: .88rem; }
+
+.piricard-page .pc-final-cta {
+  margin-block: clamp(3rem, 6vw, 5rem);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(74, 170, 233, .48);
+  border-radius: var(--pc-radius);
+  padding: clamp(2rem, 5vw, 3.5rem);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem 3rem;
+  background: radial-gradient(circle at 80% 44%, rgba(44, 140, 255, .19), transparent 21rem), linear-gradient(125deg, rgba(11, 34, 56, .97), rgba(5, 14, 23, .95) 62%);
+  box-shadow: var(--pc-shadow), inset 0 1px rgba(255, 255, 255, .035);
+  text-align: left;
+}
+.piricard-page .pc-final-cta::after { content: ""; position: absolute; right: -7rem; bottom: -10rem; width: 25rem; height: 25rem; border: 1px solid rgba(93, 212, 255, .22); border-radius: 40%; pointer-events: none; transform: rotate(34deg); }
+.piricard-page .pc-final-cta > * { position: relative; z-index: 1; }
+.piricard-page .pc-final-cta .eyebrow,
+.piricard-page .pc-final-cta h2 { grid-column: 1; }
+.piricard-page .pc-final-price { grid-column: 2; grid-row: 1 / 4; min-width: 17rem; margin: 0; border-color: rgba(105, 183, 232, .25); border-radius: .75rem; background: rgba(3, 12, 21, .68); }
+.piricard-page .pc-final-price p { margin: 0; }
+.piricard-page .pc-final-price-name { color: var(--pc-blue); font-size: .72rem; letter-spacing: .17em; }
+.piricard-page .pc-final-price-label { margin-top: .75rem; color: #8799ab; }
+.piricard-page .pc-final-price-value { margin-top: .3rem; color: var(--pc-text); font-size: 2.75rem; }
+.piricard-page .pc-final-price-note { margin-top: .35rem; color: #8799ab; }
+.piricard-page .pc-final-cta-link { grid-column: 1; width: fit-content; margin-top: .45rem; }
+.piricard-page .platform-footer { border-color: rgba(105, 183, 232, .16); color: #7f8e9e; }
+.piricard-page .platform-footer::before { inset: -1px 0 auto; }
+
+@media (max-width: 820px) {
+  .piricard-page .platform-header,
+  .piricard-page .platform-footer,
+  .piricard-page-inner { width: min(calc(100% - 2rem), 74rem); }
+  .piricard-page .pc-hero { grid-template-columns: minmax(0, 1fr) minmax(17rem, .78fr); column-gap: 2rem; }
+  .piricard-page .pc-price-card { gap: .3rem 1.5rem; }
+  .piricard-page .pc-price-cta { min-width: 15rem; }
+  .piricard-page .pc-renewal-card { grid-template-columns: 1fr; }
+  .piricard-page .pc-renewal-list { grid-column: 1; grid-row: auto; margin-top: .65rem; }
+}
+
+@media (max-width: 639px) {
+  .piricard-page::after { top: 6rem; right: -28rem; opacity: .36; }
+  .piricard-page .platform-header { min-height: 4.85rem; }
+  .piricard-page .platform-header > a:last-child { font-size: .62rem; }
+  .piricard-page .pc-section { padding-block: 3.35rem; }
+  .piricard-page .pc-section h2 { font-size: clamp(2rem, 10vw, 2.65rem); }
+  .piricard-page .pc-hero { min-height: 0; padding: 3rem 0 3.5rem; display: block; text-align: left; }
+  .piricard-page .pc-hero h1 { max-width: 22rem; font-size: clamp(2.75rem, 13vw, 3.55rem); line-height: .95; }
+  .piricard-page .pc-hero-sub { font-size: .95rem; }
+  .piricard-page .pc-hero-sub-line { font-size: .82rem; }
+  .piricard-page .pc-hero-actions { align-items: stretch; flex-direction: column; gap: .7rem; }
+  .piricard-page .pc-hero-cta-primary,
+  .piricard-page .pc-hero-cta-secondary { width: 100%; }
+  .piricard-page .pc-hero-card { min-height: 28rem; margin-top: 2rem; }
+  .piricard-page .piricard-demo-float { min-height: 25rem; }
+  .piricard-page .piricard-demo-scene { width: min(100%, 15rem); }
+  .piricard-page .pc-price-card { grid-template-columns: 1fr; gap: 0; text-align: center; }
+  .piricard-page .pc-price-label,
+  .piricard-page .pc-price-value,
+  .piricard-page .pc-price-regular,
+  .piricard-page .pc-price-notes,
+  .piricard-page .pc-price-cta { grid-column: 1; grid-row: auto; }
+  .piricard-page .pc-price-notes { margin-top: 1rem; }
+  .piricard-page .pc-price-cta { width: 100%; min-width: 0; }
+  .piricard-page .pc-includes-list { grid-template-columns: 1fr; }
+  .piricard-page .pc-how-list { grid-template-columns: 1fr; gap: .65rem; }
+  .piricard-page .pc-how-list li { min-height: 0; flex-direction: row; }
+  .piricard-page .pc-renewal-list { grid-template-columns: 1fr; }
+  .piricard-page .pc-manage-grid { grid-template-columns: 1fr; }
+  .piricard-page .pc-manage-card ul { grid-template-columns: 1fr; }
+  .piricard-page .pc-final-cta { margin-block: 3rem; grid-template-columns: 1fr; gap: .8rem; text-align: left; }
+  .piricard-page .pc-final-cta .eyebrow,
+  .piricard-page .pc-final-cta h2,
+  .piricard-page .pc-final-price,
+  .piricard-page .pc-final-cta-link { grid-column: 1; grid-row: auto; }
+  .piricard-page .pc-final-price { width: 100%; min-width: 0; margin-top: .8rem; }
+  .piricard-page .pc-final-cta-link { width: 100%; margin-top: .5rem; }
+}

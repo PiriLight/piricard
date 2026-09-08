@@ -14,6 +14,7 @@ import {
   saveBusinessConfigAction,
   saveBusinessCoreAction,
   saveModuleContentAction,
+  setModuleEnabledAction,
 } from "@/app/admin/(protected)/businesses/[id]/edit/actions";
 import type { ModuleKey } from "@/lib/supabase/types";
 import { businessDraftReducer, createInitialDraft } from "./reducer";
@@ -82,6 +83,23 @@ const SECTIONS: ReadonlyArray<{ key: SectionKey; label: string; group: SectionGr
 type SaveStatus = "idle" | "success" | "error";
 
 /**
+ * V1.1, Step 10 — names the specific module tab(s) a failed content save
+ * actually flagged, instead of a single generic "revê os módulos" message
+ * for every possible cause. Falls back to the old generic wording only if,
+ * somehow, the error object carries none of the known keys (defensive —
+ * should not happen given validateModuleContent's own return shape).
+ */
+function describeModuleSaveError(errors: ModuleContentFieldErrors): string {
+  const flagged: string[] = [];
+  if (errors.gallery || errors.galleryItems) flagged.push("Galeria");
+  if (errors.menuSections || errors.menuItems) flagged.push("Menu");
+  if (errors.treatmentGroups || errors.treatmentItems) flagged.push("Tratamentos");
+
+  if (flagged.length === 0) return "Conteúdo principal guardado — revê os campos dos módulos assinalados.";
+  return `Conteúdo principal guardado — revê ${flagged.join(" e ")} (${flagged.length > 1 ? "campos assinalados" : "campo assinalado"} abaixo).`;
+}
+
+/**
  * Orchestrates the full editor: content (business_profile_content/hours/
  * social/modules — Phases 4B.3/4B.4) and protected config (businesses table:
  * layout/theme/assets/technical/publish/archive — Phase 4B.5/4B.6). These
@@ -110,6 +128,11 @@ export default function BusinessEditor({
   const [archivedAt, setArchivedAt] = useState<string | null>(initialArchivedAt);
   const [activeSection, setActiveSection] = useState<SectionKey>("content");
   const [mobileView, setMobileView] = useState<"edit" | "preview">("edit");
+  // V1.1, Step 10: at least one gallery image is actively uploading right
+  // now — Save must wait, since saving mid-upload would persist whatever
+  // `draft.gallery` looked like a moment ago and silently drop the result
+  // once the upload finishes after the save already happened.
+  const [isGalleryUploading, setIsGalleryUploading] = useState(false);
 
   const [contentSaveStatus, setContentSaveStatus] = useState<SaveStatus>("idle");
   const [contentSaveMessage, setContentSaveMessage] = useState<string | null>(null);
@@ -140,6 +163,18 @@ export default function BusinessEditor({
     setModuleActivation((current) => ({ ...current, [key]: enabled }));
   }
 
+  // V1.1, Step 11: the Gallery tab's own small activation shortcut reuses
+  // this exact same RPC + state-update path — never a second, parallel way
+  // to flip business_modules.
+  async function handleToggleGalleryModule(enabled: boolean): Promise<boolean> {
+    const result = await setModuleEnabledAction(businessId, "gallery", enabled);
+    if (result.status === "success") {
+      handleModuleActivationChange("gallery", enabled);
+      return true;
+    }
+    return false;
+  }
+
   function handleSaveContent() {
     const corePayload = toBusinessCoreSavePayload(draft);
     const modulePayload = toModuleContentSavePayload(draft);
@@ -166,7 +201,10 @@ export default function BusinessEditor({
       if (moduleResult.status === "invalid") {
         setModuleFieldErrors(moduleResult.fieldErrors);
         setContentSaveStatus("error");
-        setContentSaveMessage("Conteúdo principal guardado — revê os campos dos módulos assinalados.");
+        // V1.1, Step 10: name which module tab actually has the problem
+        // instead of a one-size-fits-all "revê os módulos" — the admin
+        // shouldn't have to click through every tab to find it.
+        setContentSaveMessage(describeModuleSaveError(moduleResult.fieldErrors));
         setContentBaseline(savedSnapshot);
         return;
       }
@@ -235,8 +273,18 @@ export default function BusinessEditor({
             <>
               {contentSaveStatus === "error" && contentSaveMessage ? <span className="admin-save-error">{contentSaveMessage}</span> : null}
               {contentSaveStatus === "success" && !isContentDirty ? <span className="admin-save-success">Guardado</span> : null}
-              {isContentDirty ? <span className="admin-dirty-indicator">Alterações por guardar</span> : null}
-              <button type="button" className="admin-save-button" onClick={handleSaveContent} disabled={isSaving || !isContentDirty}>
+              {isGalleryUploading ? (
+                <span className="admin-dirty-indicator">A enviar imagem da galeria…</span>
+              ) : isContentDirty ? (
+                <span className="admin-dirty-indicator">Alterações por guardar</span>
+              ) : null}
+              <button
+                type="button"
+                className="admin-save-button"
+                onClick={handleSaveContent}
+                disabled={isSaving || !isContentDirty || isGalleryUploading}
+                title={isGalleryUploading ? "Aguarda o fim do envio da imagem antes de guardar." : undefined}
+              >
                 {isSavingContent ? "A guardar…" : "Guardar"}
               </button>
             </>
@@ -286,7 +334,16 @@ export default function BusinessEditor({
             />
           ) : null}
           {activeSection === "gallery" ? (
-            <GallerySection businessId={businessId} draft={draft} dispatch={dispatch} disabled={!moduleActivation.gallery} />
+            <GallerySection
+              businessId={businessId}
+              draft={draft}
+              dispatch={dispatch}
+              disabled={!moduleActivation.gallery}
+              moduleEnabled={moduleActivation.gallery}
+              onToggleModule={handleToggleGalleryModule}
+              onUploadingChange={setIsGalleryUploading}
+              itemErrors={moduleFieldErrors.galleryItems}
+            />
           ) : null}
           {activeSection === "restaurantInfo" ? (
             <RestaurantInfoSection draft={draft} dispatch={dispatch} disabled={!moduleActivation.restaurant_info} />
@@ -317,8 +374,13 @@ export default function BusinessEditor({
               disabled={!moduleActivation.product_categories}
             />
           ) : null}
-          {(activeSection === "gallery" && moduleFieldErrors.gallery) || moduleFieldErrors.galleryItems ? (
-            <p className="admin-field-error">{moduleFieldErrors.gallery ?? "Revê as imagens assinaladas."}</p>
+          {/* V1.1: per-item gallery errors (moduleFieldErrors.galleryItems)
+              now render inline on the affected card inside GallerySection
+              itself (Step 10/14 — "close to the affected image"), so this
+              only needs to surface the one TOP-LEVEL gallery message (e.g.
+              "too many images") that isn't tied to any single item. */}
+          {activeSection === "gallery" && moduleFieldErrors.gallery ? (
+            <p className="admin-field-error">{moduleFieldErrors.gallery}</p>
           ) : null}
 
           {activeSection === "layout" ? <LayoutSection draft={draft} dispatch={dispatch} errors={configFieldErrors} /> : null}

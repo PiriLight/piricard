@@ -41,6 +41,64 @@ describe("businessDraftReducer — gallery (max items enforced)", () => {
     expect(next.gallery?.[0]).toEqual({ alt: "Updated", src: "/x.webp" });
     expect(draft.gallery?.[0]).toEqual({ alt: "Original" });
   });
+
+  // V1.1 regression coverage — the reported "Adicionar imagem" bug and the
+  // upload-completion path (Step 15 of the phase).
+  it("ADD_GALLERY_ITEM never creates a fake/placeholder src — the new item has none at all", () => {
+    const draft = { ...createInitialDraft(sampleBusiness), gallery: [] };
+    const next = businessDraftReducer(draft, { type: "ADD_GALLERY_ITEM" });
+    expect(next.gallery).toHaveLength(1);
+    expect(next.gallery?.[0]).toEqual({ alt: "" });
+    expect(next.gallery?.[0].src).toBeUndefined();
+    expect(next.gallery?.[0].src).not.toBe("/clients/exemplo/gallery/foto.webp");
+  });
+
+  it("a successful upload's UPDATE_GALLERY_ITEM call gives the freshly-added item a real src, without adding a second row", () => {
+    const withEmptyItem = businessDraftReducer({ ...createInitialDraft(sampleBusiness), gallery: [] }, { type: "ADD_GALLERY_ITEM" });
+    const afterUpload = businessDraftReducer(withEmptyItem, {
+      type: "UPDATE_GALLERY_ITEM",
+      index: 0,
+      patch: { src: "https://scneuxxgzlqcsxdzthxb.supabase.co/storage/v1/object/public/piricard-assets/businesses/b1/gallery/x.webp" },
+    });
+    expect(afterUpload.gallery).toHaveLength(1);
+    expect(afterUpload.gallery?.[0].src).toContain("piricard-assets");
+  });
+
+  it("repeated UPDATE_GALLERY_ITEM calls on the same index replace, never duplicate, the row", () => {
+    const draft = { ...createInitialDraft(sampleBusiness), gallery: [{ alt: "" }] };
+    const first = businessDraftReducer(draft, { type: "UPDATE_GALLERY_ITEM", index: 0, patch: { src: "/a.webp" } });
+    const second = businessDraftReducer(first, { type: "UPDATE_GALLERY_ITEM", index: 0, patch: { src: "/b.webp" } });
+    expect(second.gallery).toHaveLength(1);
+    expect(second.gallery?.[0].src).toBe("/b.webp");
+  });
+
+  it("MOVE_GALLERY_ITEM reorders without losing or duplicating entries", () => {
+    const draft = { ...createInitialDraft(sampleBusiness), gallery: [{ alt: "First", src: "/a.webp" }, { alt: "Second", src: "/b.webp" }] };
+    const moved = businessDraftReducer(draft, { type: "MOVE_GALLERY_ITEM", index: 0, direction: "down" });
+    expect(moved.gallery).toHaveLength(2);
+    expect(moved.gallery?.[0].alt).toBe("Second");
+    expect(moved.gallery?.[1].alt).toBe("First");
+  });
+
+  it("REMOVE_GALLERY_ITEM removes exactly the targeted item", () => {
+    const draft = { ...createInitialDraft(sampleBusiness), gallery: [{ alt: "Keep", src: "/a.webp" }, { alt: "Drop", src: "/b.webp" }] };
+    const next = businessDraftReducer(draft, { type: "REMOVE_GALLERY_ITEM", index: 1 });
+    expect(next.gallery).toHaveLength(1);
+    expect(next.gallery?.[0].alt).toBe("Keep");
+  });
+
+  it("legacy static and external src values pass through UPDATE_GALLERY_ITEM unchanged (backwards compatibility)", () => {
+    const draft = { ...createInitialDraft(sampleBusiness), gallery: [{ alt: "" }] };
+    const withLegacy = businessDraftReducer(draft, {
+      type: "UPDATE_GALLERY_ITEM",
+      index: 0,
+      patch: { src: "/clients/autoformigal/gallery/interior-recepcao.png" },
+    });
+    expect(withLegacy.gallery?.[0].src).toBe("/clients/autoformigal/gallery/interior-recepcao.png");
+
+    const withExternal = businessDraftReducer(draft, { type: "UPDATE_GALLERY_ITEM", index: 0, patch: { src: "https://example.com/photo.jpg" } });
+    expect(withExternal.gallery?.[0].src).toBe("https://example.com/photo.jpg");
+  });
 });
 
 describe("businessDraftReducer — restaurant info", () => {

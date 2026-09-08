@@ -259,6 +259,8 @@
 .page .directionsButton { min-height: 56px; margin: 12px; display: flex; align-items: center; justify-content: space-between; gap: 14px; border-radius: 8px; padding: 0 16px; background: var(--oft-ink); color: #fff; font-size: 14px; font-weight: 700; }
 .directionsButton svg { width: 17px; height: 17px; color: #ef6d59; }
 
+.gallery { padding: 42px 20px 44px; background: var(--oft-paper); }
+
 .contacts { padding: 36px 20px 34px; background: var(--oft-charcoal); color: #fff; }
 .contacts .kicker { color: rgba(255, 255, 255, .46); }
 .contacts > div { margin-top: 22px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
@@ -328,7 +330,7 @@
   .reviewActions { grid-template-columns: auto auto; justify-content: flex-start; gap: 28px; }
   .reviewWriteCta { padding-inline: 26px; }
   .visit { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .hours, .location, .contacts { padding-inline: 34px; }
+  .hours, .location, .gallery, .contacts { padding-inline: 34px; }
   .contacts > div { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .footer { flex-direction: row; align-items: flex-end; }
 }
@@ -340,7 +342,7 @@
 
 @media (max-width: 390px) {
   .platformBar { padding-inline: 16px; }
-  .identity, .quickActions, .essentials, .social, .reviews, .hours, .location, .contacts, .footer { padding-left: 16px; padding-right: 16px; }
+  .identity, .quickActions, .essentials, .social, .reviews, .hours, .location, .gallery, .contacts, .footer { padding-left: 16px; padding-right: 16px; }
   .essentials::before { left: 16px; }
   .heroImage { aspect-ratio: 1.55 / 1; }
   .logo { width: 98px; height: 98px; }

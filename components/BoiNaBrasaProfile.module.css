@@ -121,6 +121,8 @@
 .about p { max-width: 62ch; margin: 12px 0 0; color: #3d342c; font-size: 15.5px; line-height: 1.62; }
 .about p + p { margin-top: 14px; }
 
+.gallery { padding: 32px 20px; }
+
 .menu { padding: 32px 20px; background: var(--bnb-ink); color: #f6efe3; scroll-margin-top: 12px; }
 .sectionIntro { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 14px; }
 .sectionIntro > span { color: #a1938a; font: 400 11px/1.3 "IBM Plex Mono", monospace; }
@@ -246,7 +248,7 @@
   .platformBar { padding-inline: 14px; }
   .saveContact span { display: none; }
   .saveContact { width: 36px; padding: 0; justify-content: center; }
-  .identity, .quickActions, .essentials, .social, .about, .menu, .reviews, .visit, .contacts, .footer { padding-left: 20px; padding-right: 20px; }
+  .identity, .quickActions, .essentials, .social, .about, .menu, .gallery, .reviews, .visit, .contacts, .footer { padding-left: 20px; padding-right: 20px; }
   .quickActions { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .essentialGrid, .menuColumns, .visit { grid-template-columns: 1fr; }
   .essentialGrid > div { padding-inline: 2px; }
@@ -254,7 +256,7 @@
 }
 
 @media (max-width: 370px) {
-  .identity, .quickActions, .essentials, .social, .about, .menu, .reviews, .visit, .contacts, .footer { padding-left: 16px; padding-right: 16px; }
+  .identity, .quickActions, .essentials, .social, .about, .menu, .gallery, .reviews, .visit, .contacts, .footer { padding-left: 16px; padding-right: 16px; }
   .platformActions { gap: 7px; }
   .platformActions > a { letter-spacing: .06em; }
   .quickActions { gap: 8px; }

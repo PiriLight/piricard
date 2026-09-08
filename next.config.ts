@@ -2,6 +2,25 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  experimental: {
+    // V1.1 — root cause of the indefinitely-stuck "A enviar…" gallery/logo/
+    // cover upload state: Next.js Server Actions cap the request body at
+    // 1MB by default (verified against node_modules/next/dist/docs/01-app/
+    // 02-guides/server-actions.md and .../config/next-config-js/
+    // serverActions.md for this exact installed version, not assumed). This
+    // app's own client-side validation (lib/admin/storage.ts,
+    // MAX_FILE_BYTES) already allows images up to 5 MiB, and
+    // uploadBusinessImageAction (app/admin/(protected)/businesses/
+    // storage-actions.ts) is a Server Action that receives the whole file as
+    // multipart FormData — so a real phone photo comfortably inside the
+    // app's own advertised 5 MB limit was silently rejected by this
+    // framework-level 1MB ceiling before ever reaching the action body.
+    // 8mb leaves real headroom above the 5 MiB file limit plus the
+    // multipart boundary/header overhead the docs call out.
+    serverActions: {
+      bodySizeLimit: "8mb",
+    },
+  },
   images: {
     // Phase 4H — Supabase Storage-backed business assets (logo/cover/gallery)
     // are served as full public URLs from the project's own Storage host,

@@ -834,7 +834,7 @@
 
 .admin-simple-list-actions { display: flex; gap: 6px; }
 
-/* Gallery cards */
+/* Gallery cards (V1.1 rework — thumbnail-first, upload-first workflow) */
 .admin-gallery-card {
   border: 1px solid var(--platform-border);
   border-radius: 10px;
@@ -845,6 +845,83 @@
 }
 
 .admin-gallery-card-actions { display: flex; gap: 6px; }
+
+/* Slightly less visually dominant than the primary upload/add actions —
+   still a real, reachable button (touch-friendly), just not competing for
+   attention the way "Adicionar imagem"/"Carregar" do. */
+.admin-gallery-remove-button {
+  align-self: flex-start;
+  background: transparent;
+  border: 1px solid var(--platform-border);
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-size: 13px;
+  color: var(--platform-muted);
+  cursor: pointer;
+}
+.admin-gallery-remove-button:hover:not(:disabled) { border-color: #ff8a8a; color: #ff8a8a; }
+.admin-gallery-remove-button:disabled { opacity: .4; cursor: not-allowed; }
+
+.admin-gallery-header { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+
+.admin-gallery-status-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--platform-border);
+  color: var(--platform-muted);
+}
+.admin-gallery-status-badge.is-active { border-color: rgba(112, 224, 154, .4); color: #7de8a8; }
+.admin-gallery-status-badge.is-inactive { border-color: rgba(255, 208, 116, .35); color: #ffd074; }
+
+.admin-gallery-thumb-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+.admin-gallery-thumb {
+  position: relative;
+  width: 96px;
+  height: 72px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--platform-border);
+  background: var(--platform-surface-muted, #f2f2f2);
+}
+.admin-gallery-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.admin-gallery-thumb-error {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  text-align: center;
+  font-size: 10px;
+  color: var(--platform-muted);
+  background: var(--platform-surface-muted, #f2f2f2);
+}
+.admin-gallery-thumb-error-hidden { display: none; }
+
+.admin-gallery-thumb-actions { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+
+.admin-gallery-empty-card {
+  border: 1px dashed var(--platform-border);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+  background: rgba(255, 255, 255, .02);
+}
+
+.admin-gallery-empty-hint { margin: 0; font-size: 13px; color: var(--platform-muted); }
+.admin-gallery-empty-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.admin-gallery-url-toggle { font-size: 12px; color: var(--platform-muted); }
+
+.admin-gallery-url-field { margin-top: 2px; }
 
 /* Nested cards: menu sections -> items, treatment groups -> items */
 .admin-nested-card {

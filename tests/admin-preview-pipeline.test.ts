@@ -116,3 +116,95 @@ describe("admin preview pipeline: existing-business load -> unsaved edit -> prev
     expect(typeof preview.name).toBe("string");
   });
 });
+
+/**
+ * V1.1 — Gallery Upload + Live Preview Reliability. The reported bug's
+ * final symptom ("gallery does not become visibly available in Preview")
+ * turned out to have two real causes upstream of this pipeline (the upload
+ * itself hanging forever, and OFTRacingProfile having no gallery rendering
+ * branch at all — see the phase report) rather than this pipeline being
+ * broken. These tests pin down that buildPreviewBusiness's own reactivity
+ * to an unsaved gallery edit and an unsaved (not-yet-persisted) module
+ * toggle was — and remains — correct, exactly as Step 8 of the phase spec
+ * requires: activation state (business_modules / local moduleActivation) is
+ * the only source of truth, never inferred from whether `gallery` content
+ * happens to be present.
+ */
+describe("admin preview pipeline — gallery module activation and content, unsaved", () => {
+  const disabledAll: ModuleActivation = {
+    services: false,
+    gallery: false,
+    restaurant_info: false,
+    menu: false,
+    treatments: false,
+    brands: false,
+    product_categories: false,
+  };
+
+  it("gallery is absent from the preview while the module is disabled, with zero gallery content in the draft", () => {
+    const draft = createInitialDraft(mapBusinessFromDatabase({ business: makeBusinessRow(), content: makeContentRow(), hours: [], socialLinks: [] }));
+    expect(buildPreviewBusiness(draft, disabledAll).gallery).toBeUndefined();
+  });
+
+  it("enabling the gallery module changes preview activation immediately — no save, no content required yet", () => {
+    const draft = createInitialDraft(mapBusinessFromDatabase({ business: makeBusinessRow(), content: makeContentRow(), hours: [], socialLinks: [] }));
+    const beforeEnable = buildPreviewBusiness(draft, disabledAll);
+    expect(beforeEnable.gallery).toBeUndefined();
+
+    const afterEnable = buildPreviewBusiness(draft, { ...disabledAll, gallery: true });
+    // The module is on, but nothing has been uploaded yet — an empty array
+    // reads the same as "no gallery" to the public renderer either way;
+    // the important assertion is that activation, not content, drove this.
+    expect(afterEnable.gallery ?? []).toEqual([]);
+  });
+
+  it("a fresh ADD_GALLERY_ITEM + upload-simulated UPDATE_GALLERY_ITEM appears in the preview before any save", () => {
+    let draft = createInitialDraft(mapBusinessFromDatabase({ business: makeBusinessRow(), content: makeContentRow(), hours: [], socialLinks: [] }));
+    const activation: ModuleActivation = { ...disabledAll, gallery: true };
+
+    draft = businessDraftReducer(draft, { type: "ADD_GALLERY_ITEM" });
+    expect(buildPreviewBusiness(draft, activation).gallery).toEqual([{ alt: "" }]);
+
+    // This dispatch is exactly what ImageUploadField's onUploaded callback
+    // fires — the same one whose promise used to hang forever before the
+    // V1.1 fix, and never reached this line in production.
+    draft = businessDraftReducer(draft, { type: "UPDATE_GALLERY_ITEM", index: 0, patch: { src: "/uploaded.webp", alt: "Loja" } });
+    expect(buildPreviewBusiness(draft, activation).gallery).toEqual([{ alt: "Loja", src: "/uploaded.webp" }]);
+  });
+
+  it("adding a second image and reordering both show up in the preview immediately", () => {
+    let draft = createInitialDraft(mapBusinessFromDatabase({ business: makeBusinessRow(), content: makeContentRow(), hours: [], socialLinks: [] }));
+    draft = { ...draft, gallery: [{ alt: "First", src: "/a.webp" }] };
+    const activation: ModuleActivation = { ...disabledAll, gallery: true };
+
+    draft = businessDraftReducer(draft, { type: "ADD_GALLERY_ITEM" });
+    draft = businessDraftReducer(draft, { type: "UPDATE_GALLERY_ITEM", index: 1, patch: { src: "/b.webp", alt: "Second" } });
+    expect(buildPreviewBusiness(draft, activation).gallery?.map((g) => g.alt)).toEqual(["First", "Second"]);
+
+    draft = businessDraftReducer(draft, { type: "MOVE_GALLERY_ITEM", index: 0, direction: "down" });
+    expect(buildPreviewBusiness(draft, activation).gallery?.map((g) => g.alt)).toEqual(["Second", "First"]);
+  });
+
+  it("removing an image drops it from the preview immediately", () => {
+    let draft = createInitialDraft(mapBusinessFromDatabase({ business: makeBusinessRow(), content: makeContentRow(), hours: [], socialLinks: [] }));
+    draft = { ...draft, gallery: [{ alt: "Keep", src: "/a.webp" }, { alt: "Drop", src: "/b.webp" }] };
+    const activation: ModuleActivation = { ...disabledAll, gallery: true };
+
+    draft = businessDraftReducer(draft, { type: "REMOVE_GALLERY_ITEM", index: 1 });
+    expect(buildPreviewBusiness(draft, activation).gallery).toEqual([{ alt: "Keep", src: "/a.webp" }]);
+  });
+
+  it("disabling the gallery module hides it from the preview immediately WITHOUT deleting the draft's gallery content", () => {
+    let draft = createInitialDraft(mapBusinessFromDatabase({ business: makeBusinessRow(), content: makeContentRow(), hours: [], socialLinks: [] }));
+    draft = { ...draft, gallery: [{ alt: "Photo", src: "/a.webp" }] };
+    const enabled: ModuleActivation = { ...disabledAll, gallery: true };
+
+    expect(buildPreviewBusiness(draft, enabled).gallery).toEqual([{ alt: "Photo", src: "/a.webp" }]);
+    expect(buildPreviewBusiness(draft, disabledAll).gallery).toBeUndefined();
+    // The draft itself — what the still-open Gallery tab shows — is untouched.
+    expect(draft.gallery).toEqual([{ alt: "Photo", src: "/a.webp" }]);
+
+    // Re-enabling brings the SAME content straight back, with no re-upload.
+    expect(buildPreviewBusiness(draft, enabled).gallery).toEqual([{ alt: "Photo", src: "/a.webp" }]);
+  });
+});

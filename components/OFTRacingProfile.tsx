@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { BusinessHoursSchedule, OpeningStatus, TodayHours } from "@/components/OpeningStatus";
+import { BusinessPhotoGallery } from "@/components/BusinessPhotoGallery";
 import { ContactDownloadButton } from "@/components/ContactDownloadButton";
 import { OFTStickyBar } from "@/components/OFTStickyBar";
 import { PiriCardBrandMark } from "@/components/PiriCardBrandMark";
@@ -329,6 +330,13 @@ export function OFTRacingProfile({ business }: { business: Business }) {
             </div>
           ) : null}
         </section>
+
+        {business.gallery?.length ? (
+          <section className={styles.gallery} aria-labelledby="oft-gallery-heading">
+            <p className={styles.kicker} id="oft-gallery-heading">Galeria</p>
+            <BusinessPhotoGallery businessName={business.name} images={business.gallery} />
+          </section>
+        ) : null}
 
         <section className={styles.contacts} aria-labelledby="oft-contacts-heading">
           <p className={styles.kicker}>Fala connosco</p>

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Fragment } from "react";
 import { ArrowUpRight, Bike, ChevronRight, Facebook, Instagram, Leaf, MapPin, Navigation, Phone, Star } from "lucide-react";
+import { BusinessPhotoGallery } from "@/components/BusinessPhotoGallery";
 import { ContactDownloadButton } from "@/components/ContactDownloadButton";
 import { PiriCardBrandMark } from "@/components/PiriCardBrandMark";
 import { BoiNaBrasaStickyBar } from "@/components/BoiNaBrasaStickyBar";
@@ -255,6 +256,13 @@ export function BoiNaBrasaProfile({ business }: { business: Business }) {
             </div>
           </div>
         </section>
+
+        {business.gallery?.length ? (
+          <section className={styles.gallery} aria-labelledby="bnb-gallery-heading">
+            <p className={styles.kicker} id="bnb-gallery-heading">Galeria</p>
+            <BusinessPhotoGallery businessName={business.name} images={business.gallery} />
+          </section>
+        ) : null}
 
         <section className={styles.contacts} aria-labelledby="contacts-heading">
           <h2 id="contacts-heading">Contactos</h2>
